@@ -32,6 +32,8 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Supabase JS SDK v2 (UMD build exposes window.supabase) -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -459,6 +461,11 @@
 
   <!-- SPA & Business Logic -->
   <script>
+    // Supabase config (replace with your project values or set via localStorage SUPABASE_URL / SUPABASE_ANON_KEY)
+    const SUPABASE_URL = window.SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || 'https://YOUR_PROJECT_REF.supabase.co';
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || 'YOUR_ANON_KEY';
+    const isSupabaseConfigured = () => SUPABASE_URL.startsWith('http') && !/YOUR_/.test(SUPABASE_ANON_KEY);
+    const supabase = isSupabaseConfigured() ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     // Utility: Toast notifications
     function showNotification(message, type = 'success') {
       const toast = document.getElementById('toast');
@@ -695,8 +702,48 @@
       localStorage.setItem('products', JSON.stringify(list || []));
     }
 
-    // Active catalog (loaded from local storage)
+    // Active catalog (load from local first, then refresh from Supabase if configured)
     let products = loadProducts();
+
+    async function fetchProductsFromSupabase() {
+      if (!supabase) return null;
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const mapped = (data || []).map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        subcategory: p.subcategory,
+        brand: p.brand,
+        price: p.price,
+        currency: p.currency || 'PKR',
+        images: Array.isArray(p.images) ? p.images : [],
+        description: p.description || '',
+        specifications: p.specifications || {},
+        availability: p.availability || 'in-stock',
+        stock: p.stock ?? 0,
+        deliveryInfo: p.delivery_info || { freeDelivery: false, deliveryTime: '' },
+        featured: !!p.featured,
+        createdAt: p.created_at || new Date().toISOString(),
+        updatedAt: p.updated_at || new Date().toISOString(),
+      }));
+      return mapped;
+    }
+
+    async function refreshProductsFromSupabase() {
+      try {
+        const remote = await fetchProductsFromSupabase();
+        if (remote && Array.isArray(remote) && remote.length) {
+          products = remote;
+          renderAllProducts();
+        }
+      } catch (_) {
+        // ignore and keep local
+      }
+    }
 
     // Helpers
     const currencyFormat = (num) => 'PKR ' + Number(num || 0).toLocaleString();
@@ -818,6 +865,34 @@
         localStorage.setItem('orders', JSON.stringify(orders));
         return order;
       }
+    }
+
+    // Supabase order submission (optional)
+    async function submitOrderToSupabase(order) {
+      if (!supabase) return { ok: false };
+      const { error: orderErr } = await supabase.from('orders').insert([{
+        id: order.id,
+        customer_name: order.customerInfo.name,
+        customer_email: order.customerInfo.email,
+        customer_address: order.customerInfo.address,
+        payment_method: order.paymentMethod,
+        subtotal: order.subtotal,
+        delivery_fee: order.deliveryFee,
+        total: order.total,
+        status: order.status,
+        created_at: order.createdAt,
+      }]);
+      if (orderErr) throw orderErr;
+      const items = order.items.map((i) => ({
+        order_id: order.id,
+        product_id: i.id,
+        quantity: i.quantity,
+        price: i.price,
+        category: i.category,
+      }));
+      const { error: itemsErr } = await supabase.from('order_items').insert(items);
+      if (itemsErr) throw itemsErr;
+      return { ok: true };
     }
 
     // Instances (no customer auth)
@@ -1036,7 +1111,7 @@
     document.getElementById('clear-cart').addEventListener('click', () => cart.clearCart());
 
     // Checkout submit (no login required)
-    document.getElementById('checkout-form').addEventListener('submit', (e) => {
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const form = e.target;
       if (cart.items.length === 0) { showNotification('Your cart is empty', 'warning'); return; }
@@ -1046,6 +1121,11 @@
         items: cart.items.map((i) => ({ id: i.id, quantity: i.quantity, price: i.price, category: i.category })),
       };
       const order = checkout.processOrder(orderData);
+      try {
+        await submitOrderToSupabase(order);
+      } catch (_) {
+        // keep local-only on failure
+      }
       showNotification('Order placed: ' + order.id, 'success');
       cart.clearCart();
       closeCartModal();
@@ -1135,6 +1215,8 @@
     // Init
     document.getElementById('year').textContent = new Date().getFullYear();
     renderAllProducts();
+    // refresh from Supabase (non-blocking)
+    refreshProductsFromSupabase();
   </script>
 </body>
 </html>

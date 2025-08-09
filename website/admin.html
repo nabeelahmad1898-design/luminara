@@ -6,6 +6,8 @@
   <title>Manager Login | Luminara</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS SDK v2 (UMD build exposes window.supabase) -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
   <style>
     :root {
       --bg-primary: #000000;
@@ -33,6 +35,26 @@
         <p class="text-sm text-gray-300 mt-1">Sign in to manage products and content</p>
       </div>
 
+      <!-- Supabase Auth Panel (shown when Supabase is configured) -->
+      <div id="supabase-panel" class="hidden">
+        <h2 class="text-lg font-semibold mb-3">Manager Login</h2>
+        <p class="text-gray-300 text-sm mb-4">Sign in with your Supabase account. Only users with the admin role can access the dashboard.</p>
+        <form id="sp-login-form" class="space-y-3">
+          <input class="form-input" type="email" id="sp-email" placeholder="Email" required />
+          <input class="form-input" type="password" id="sp-pass" placeholder="Password" required />
+          <button class="btn-primary w-full" type="submit">Login</button>
+        </form>
+        <div class="text-sm text-gray-400 mt-4">Need an account? Create one:</div>
+        <form id="sp-signup-form" class="space-y-3 mt-2">
+          <input class="form-input" type="email" id="sp-su-email" placeholder="Email" required />
+          <input class="form-input" type="password" id="sp-su-pass" placeholder="Password" required />
+          <button class="btn-secondary w-full" type="submit">Sign Up</button>
+        </form>
+        <p class="text-xs text-gray-400 mt-3">After signup, set your role to <span class="text-yellow-500">admin</span> in the `profiles` table in Supabase to gain access.</p>
+        <div class="text-xs text-gray-500 mt-2">Env: <span id="sp-env" class="text-yellow-500"></span></div>
+      </div>
+
+      <!-- Local 2FA Setup/Login Panels (fallback when Supabase is NOT configured) -->
       <div id="setup-panel" class="hidden">
         <h2 class="text-lg font-semibold mb-3">Initial Setup</h2>
         <p class="text-gray-300 text-sm mb-4">Create an admin password. This is stored locally in this browser only.</p>
@@ -76,6 +98,11 @@
   </div>
 
   <script>
+    // Supabase config
+    const SUPABASE_URL = window.SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || '';
+    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || '';
+    const spConfigured = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY && !/YOUR_/.test(SUPABASE_ANON_KEY);
+    const sp = spConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     // Minimal client-side session; for real deployments use a backend.
     const ADMIN_HASH_KEY = 'adminPasswordHash';
     const ADMIN_EMAIL_KEY = 'adminEmail';
@@ -189,8 +216,14 @@
     const existing = getSession();
     if (existing) { window.location.href = 'dashboard.html'; }
 
-    const hasPassword = !!getAdminHash();
-    if (hasPassword) { show('login-panel'); } else { show('setup-panel'); }
+    // Decide which auth to show
+    if (spConfigured) {
+      document.getElementById('sp-env').textContent = SUPABASE_URL.replace(/^https?:\/\//,'');
+      show('supabase-panel');
+    } else {
+      const hasPassword = !!getAdminHash();
+      if (hasPassword) { show('login-panel'); } else { show('setup-panel'); }
+    }
 
     document.getElementById('switch-to-login').addEventListener('click', () => show('login-panel'));
     const switchToSetupBtn = document.getElementById('switch-to-setup');
@@ -260,6 +293,38 @@
       createSession();
       window.location.href = 'dashboard.html';
     });
+
+    // Supabase auth handlers
+    if (spConfigured) {
+      document.getElementById('sp-login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('sp-email').value.trim();
+        const password = document.getElementById('sp-pass').value;
+        const { data, error } = await sp.auth.signInWithPassword({ email, password });
+        if (error) { alert(error.message); return; }
+        // Check role in profiles
+        const { data: u } = await sp.auth.getUser();
+        const uid = u?.user?.id;
+        const { data: prof } = await sp.from('profiles').select('role').eq('user_id', uid).maybeSingle();
+        if (!prof || prof.role !== 'admin') {
+          alert('Your account is not authorized (role != admin).');
+          await sp.auth.signOut();
+          return;
+        }
+        // Store a lightweight local session marker for redirect parity
+        createSession();
+        window.location.href = 'dashboard.html';
+      });
+
+      document.getElementById('sp-signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('sp-su-email').value.trim();
+        const password = document.getElementById('sp-su-pass').value;
+        const { data, error } = await sp.auth.signUp({ email, password });
+        if (error) { alert(error.message); return; }
+        alert('Account created. Ask the owner to set your role=admin in profiles, then login.');
+      });
+    }
   </script>
 </body>
 </html>
