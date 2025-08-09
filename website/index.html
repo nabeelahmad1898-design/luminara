@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luminara Clothing | Luxury Fashion & Jewelry</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Premium clothing and jewelry with custom stitching services. Browse our branded collections, pre-custom designs, and create your unique style." />
+  <meta name="keywords" content="custom clothing, luxury fashion, jewelry, stitched suits, branded clothing, fashion design" />
+  <meta name="author" content="Luminara Clothing" />
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Luminara Clothing | Luxury Fashion & Jewelry" />
+  <meta property="og:description" content="Premium clothing and jewelry with custom stitching services." />
+  <meta property="og:type" content="website" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            playfair: ['\'Playfair Display\'', 'serif'],
+            roboto: ['Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- Google OAuth -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    :root {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2c2c2c;
+      --gold-primary: #FFD700;
+      --gold-secondary: #F0E68C;
+      --text-primary: #FFFFFF;
+      --text-secondary: #cccccc;
+    }
+
+    html, body { height: 100%; }
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .section-title { font-family: 'Playfair Display', serif; }
+
+    /* Reusable components (approximate Tailwind utilities for CDN usage) */
+    .product-card { background: #1f2937; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,.5), 0 4px 6px -4px rgba(0,0,0,.5); padding: 1.5rem; transition: all .3s ease; }
+    .product-card:hover { box-shadow: 0 20px 25px -5px rgba(0,0,0,.6), 0 10px 10px -5px rgba(0,0,0,.6); background: #374151; }
+
+    .btn-primary { background: #FFD700; color: #000; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all .3s ease; }
+    .btn-primary:hover { background: #e6c200; }
+
+    .btn-secondary { border: 1px solid #FFD700; color: #FFD700; font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all .3s ease; }
+    .btn-secondary:hover { background: #FFD700; color: #000; }
+
+    .form-input { background: #374151; border: 1px solid #4b5563; color: #fff; border-radius: 0.5rem; padding: 0.75rem 1rem; }
+    .form-input:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 0 3px rgba(255,215,0,.3); }
+
+    .nav-link { color: #e5e7eb; transition: color .2s ease; }
+    .nav-link:hover { color: #FFD700; }
+
+    .sub-nav-btn { color: #e5e7eb; border-bottom: 2px solid transparent; padding-bottom: 0.25rem; }
+    .sub-nav-btn.active { color: #FFD700; border-color: #FFD700; }
+
+    .cart-count { position: absolute; top: -0.35rem; right: -0.35rem; background: #FFD700; color: #000; font-weight: 700; font-size: 0.75rem; border-radius: 9999px; padding: 0 0.35rem; min-width: 1.25rem; text-align: center; }
+
+    /* Modal base */
+    .modal { display: none; }
+    .modal.active { display: block; }
+
+    /* Customer Journey Flowchart */
+    .customer-journey-flowchart { display: grid; gap: 1.5rem; }
+    .journey-step, .journey-decision { background: #1f2937; border: 1px solid #374151; border-radius: 0.75rem; padding: 1rem; text-align: center; position: relative; }
+    .step-icon { font-size: 1.5rem; }
+    .arrow-down::after { content: ""; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); border-width: 12px 8px 0 8px; border-style: solid; border-color: #374151 transparent transparent transparent; }
+    .decision-branches { display: flex; justify-content: space-around; margin-top: 0.5rem; }
+    .branch { position: relative; padding: 0.5rem 1rem; background: #111827; border: 1px solid #374151; border-radius: 9999px; }
+    .branch .arrow-right::after { content: ""; position: absolute; right: -12px; top: 50%; transform: translateY(-50%); border-width: 8px 0 8px 12px; border-style: solid; border-color: transparent transparent transparent #374151; }
+    .branch .arrow-left::after { content: ""; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); border-width: 8px 12px 8px 0; border-style: solid; border-color: transparent #374151 transparent transparent; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 1rem; right: 1rem; background: #111827; color: #fff; border: 1px solid #374151; padding: 0.75rem 1rem; border-radius: 0.5rem; z-index: 60; opacity: 0; transform: translateY(10px); transition: all .25s ease; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { border-color: #16a34a; }
+    .toast.warning { border-color: #d97706; }
+    .toast.error { border-color: #dc2626; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <!-- Navigation -->
+  <nav class="fixed top-0 w-full bg-gray-900/95 backdrop-blur-sm z-50">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex justify-between items-center">
+        <!-- Logo -->
+        <div class="text-2xl font-bold text-yellow-500 font-playfair">Luminara Clothing</div>
+
+        <!-- Navigation Links -->
+        <ul class="hidden md:flex space-x-8">
+          <li><a href="#stitched" class="nav-link">Stitched</a></li>
+          <li><a href="#pre-custom" class="nav-link">Pre-Custom</a></li>
+          <li><a href="#custom-order" class="nav-link">You Choose, We Stitch</a></li>
+          <li><a href="#jewelry" class="nav-link">Jewelry</a></li>
+          <li><a href="#infographic" class="nav-link">Our Story</a></li>
+        </ul>
+
+        <!-- User Actions -->
+        <div class="flex items-center space-x-4">
+          <button id="cart-toggle" class="relative text-yellow-500 hover:text-yellow-400" aria-label="Open cart">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 100 6 3 3 0 000-6zm9-9h3.75a.75.75 0 01.736.92l-1.5 8A.75.75 0 0118.75 15H8.25m7.5-9H6.156m9.594 0l-1.5 9m-8.094 0h10.5m-10.5 0L5.106 5.272A.75.75 0 015.844 4.5H6" />
+            </svg>
+            <span class="cart-count">0</span>
+          </button>
+
+          <button id="login-btn" class="btn-secondary hidden sm:inline-flex">Login</button>
+
+          <!-- User Menu -->
+          <div id="user-menu" class="hidden items-center gap-3">
+            <img class="user-avatar h-9 w-9 rounded-full border border-yellow-500" src="" alt="User avatar" />
+            <span class="user-name text-sm text-yellow-500"></span>
+            <button id="logout-btn" class="btn-secondary">Logout</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Spacing for fixed header -->
+  <div class="h-20"></div>
+
+  <!-- Hero (optional minimal) -->
+  <section class="section-padding container mx-auto px-4">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <h1 class="hero-title font-playfair font-bold text-3xl sm:text-4xl lg:text-6xl mb-4">Elevate Your Style</h1>
+        <p class="text-gray-300 text-base md:text-lg mb-6">Luxury fashion and jewelry with bespoke stitching. Explore curated stitched, pre-custom, and custom designs crafted for you.</p>
+        <div class="flex gap-4">
+          <a href="#stitched" class="btn-primary">Shop Stitched</a>
+          <a href="#custom-order" class="btn-secondary">Custom Order</a>
+        </div>
+      </div>
+      <div class="rounded-xl overflow-hidden border border-yellow-500/30">
+        <img src="https://images.unsplash.com/photo-1520976570340-094243b6b9d9?q=80&w=1200&auto=format&fit=crop" alt="Luxury fashion" class="w-full h-full object-cover" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 4.1 Stitched Section -->
+  <section id="stitched" class="min-h-screen py-20">
+    <div class="container mx-auto px-4">
+      <h2 class="section-title text-2xl sm:text-3xl lg:text-4xl font-bold mb-8">Stitched Collection</h2>
+
+      <!-- Sub-navigation -->
+      <div class="flex justify-center space-x-8 mb-12">
+        <button class="sub-nav-btn active" data-category="branded">Branded</button>
+        <button class="sub-nav-btn" data-category="copy">Copy</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        <input id="search-stitched" class="form-input w-full md:w-1/2" placeholder="Search stitched..." />
+        <select id="sort-stitched" class="form-input w-full md:w-56">
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+
+      <!-- Products Grid -->
+      <div id="stitched-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </div>
+  </section>
+
+  <!-- 4.2 Product Card Template (rendered dynamically) -->
+
+  <!-- 4.3 Product Modal/Details -->
+  <div id="product-modal" class="modal fixed inset-0 bg-black/80 z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-8">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Product Image -->
+            <div class="space-y-4">
+              <img id="modal-image" class="w-full rounded-lg" alt="" />
+            </div>
+
+            <!-- Product Details -->
+            <div class="space-y-6">
+              <h2 id="modal-title" class="text-3xl font-bold"></h2>
+              <p id="modal-brand" class="text-yellow-500 text-lg"></p>
+              <p id="modal-price" class="text-4xl font-bold text-yellow-500"></p>
+
+              <!-- Product Specifications -->
+              <div class="space-y-3">
+                <h3 class="text-xl font-semibold">Specifications</h3>
+                <div id="modal-specs" class="space-y-2 text-gray-300"></div>
+              </div>
+
+              <div id="modal-description" class="text-gray-300 leading-relaxed"></div>
+
+              <!-- Actions -->
+              <div class="space-y-4">
+                <button id="modal-add-to-cart" class="btn-primary w-full">Add to Cart</button>
+                <button id="modal-close" class="btn-secondary w-full">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.4 Custom Order Form -->
+  <section id="custom-order" class="min-h-screen py-20">
+    <div class="container mx-auto px-4 max-w-4xl">
+      <h2 class="section-title text-2xl sm:text-3xl lg:text-4xl font-bold mb-8">You Choose, We Stitch</h2>
+
+      <form id="custom-order-form" class="space-y-8 bg-gray-800 p-8 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium mb-2">Design Type</label>
+            <select name="designType" class="form-input w-full" required>
+              <option value="">Select Design Type</option>
+              <option value="2-piece">2-Piece Suit</option>
+              <option value="3-piece">3-Piece Suit</option>
+              <option value="dress">Dress</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Preferred Fabric</label>
+            <input type="text" name="fabric" class="form-input w-full" placeholder="e.g., Cotton, Silk, Chiffon" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Design Description</label>
+          <textarea name="description" rows="4" class="form-input w-full" placeholder="Describe your design in detail..." required></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-2">Reference Images</label>
+          <input type="file" name="images" multiple accept="image/*" class="form-input w-full" />
+          <p class="text-sm text-gray-400 mt-1">Upload reference images for your design</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-sm font-medium mb-2">Budget Range (PKR)</label>
+            <select name="budget" class="form-input w-full">
+              <option value="5000-10000">5,000 - 10,000</option>
+              <option value="10000-20000">10,000 - 20,000</option>
+              <option value="20000-50000">20,000 - 50,000</option>
+              <option value="50000+">50,000+</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Timeline</label>
+            <select name="timeline" class="form-input w-full">
+              <option value="1-week">1 Week</option>
+              <option value="2-weeks">2 Weeks</option>
+              <option value="1-month">1 Month</option>
+              <option value="flexible">Flexible</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Size</label>
+            <select name="size" class="form-input w-full">
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="XXL">XXL</option>
+              <option value="custom">Custom Measurements</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+          <h3 class="text-yellow-500 font-semibold mb-2">Payment Information</h3>
+          <p class="text-sm text-gray-300">Custom orders require advance payment. After submitting this form, you'll receive a quote and payment instructions via email.</p>
+        </div>
+
+        <button type="submit" class="btn-primary w-full">Submit Custom Order Request</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- 4.x Pre-Custom Section -->
+  <section id="pre-custom" class="min-h-screen py-20">
+    <div class="container mx-auto px-4">
+      <h2 class="section-title text-2xl sm:text-3xl lg:text-4xl font-bold mb-8">Pre-Custom Designs</h2>
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        <input id="search-precustom" class="form-input w-full md:w-1/2" placeholder="Search pre-custom..." />
+        <select id="sort-precustom" class="form-input w-full md:w-56">
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+      <div id="pre-custom-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </div>
+  </section>
+
+  <!-- 4.x Jewelry Section -->
+  <section id="jewelry" class="min-h-screen py-20">
+    <div class="container mx-auto px-4">
+      <h2 class="section-title text-2xl sm:text-3xl lg:text-4xl font-bold mb-8">Jewelry Collection</h2>
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+        <input id="search-jewelry" class="form-input w-full md:w-1/2" placeholder="Search jewelry..." />
+        <select id="sort-jewelry" class="form-input w-full md:w-56">
+          <option value="featured">Featured</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+          <option value="newest">Newest</option>
+        </select>
+      </div>
+      <div id="jewelry-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </div>
+  </section>
+
+      
+
+  <!-- Orders Section -->
+  <section id="orders" class="min-h-screen py-20">
+    <div class="container mx-auto px-4">
+      <h2 class="section-title text-2xl sm:text-3xl lg:text-4xl font-bold mb-8">Order History</h2>
+      <div id="orders-list" class="space-y-4"></div>
+    </div>
+  </section>
+
+  <!-- 5. Cart Modal / Drawer -->
+  <div id="cart-modal" class="modal fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/60" data-cart-close></div>
+    <div class="absolute right-0 top-0 h-full w-full max-w-md bg-gray-900 shadow-xl p-6 overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold">Your Cart</h3>
+        <button class="btn-secondary" data-cart-close>Close</button>
+      </div>
+      <div id="cart-items" class="space-y-4"></div>
+      <div class="border-t border-gray-700 mt-6 pt-6 space-y-3">
+        <div class="flex justify-between text-gray-300">
+          <span>Subtotal</span>
+          <span id="cart-subtotal">PKR 0</span>
+        </div>
+        <div class="flex justify-between text-gray-300">
+          <span>Delivery</span>
+          <span id="cart-delivery">PKR 0</span>
+        </div>
+        <div class="flex justify-between text-yellow-500 font-bold text-lg">
+          <span>Total</span>
+          <span id="cart-total">PKR 0</span>
+        </div>
+
+        <!-- Simple Checkout Form -->
+        <form id="checkout-form" class="space-y-3 mt-4">
+          <input class="form-input w-full" type="text" name="name" placeholder="Full Name" required />
+          <input class="form-input w-full" type="email" name="email" placeholder="Email" required />
+          <input class="form-input w-full" type="text" name="address" placeholder="Delivery Address" required />
+          <select class="form-input w-full" name="paymentMethod" id="paymentMethod"></select>
+          <button class="btn-primary w-full" type="submit">Place Order</button>
+        </form>
+
+        <button id="clear-cart" class="btn-secondary w-full mt-2">Clear Cart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Auth Modal -->
+  <div id="auth-modal" class="modal fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/60" data-auth-close></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-[95%] max-w-md">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold">Login</h3>
+        <button class="btn-secondary" data-auth-close>Close</button>
+      </div>
+      <p class="text-gray-300 mb-4">Sign in with your Google account:</p>
+      <div id="google-signin" class="flex justify-center mb-4"></div>
+      <div class="text-center text-sm text-gray-400 mb-2">or</div>
+      <button id="demo-login" class="btn-primary w-full">Use Demo Login</button>
+    </div>
+  </div>
+
+  <!-- 7. Business Analytics Infographic -->
+  <section id="infographic" class="min-h-screen py-20">
+    <div class="container mx-auto px-4">
+      <h2 class="section-title text-2xl sm:text-3xl lg:text-4xl font-bold mb-8">Our Story & Insights</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="bg-gray-800 p-6 rounded-xl">
+          <h3 class="text-lg font-semibold mb-2">Revenue Breakdown</h3>
+          <canvas id="revenueChart" height="220"></canvas>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-xl">
+          <h3 class="text-lg font-semibold mb-2">Sales by Category</h3>
+          <canvas id="categoryChart" height="220"></canvas>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-xl">
+          <h3 class="text-lg font-semibold mb-2">Customer Satisfaction</h3>
+          <canvas id="satisfactionChart" height="240"></canvas>
+        </div>
+        <div class="bg-gray-800 p-6 rounded-xl">
+          <h3 class="text-lg font-semibold mb-2">Growth Trend</h3>
+          <canvas id="growthChart" height="240"></canvas>
+        </div>
+      </div>
+
+      <!-- Customer Journey Flowchart -->
+      <div class="customer-journey-flowchart mt-12">
+        <div class="journey-step">
+          <div class="step-icon">👤</div>
+          <h3 class="font-semibold">Customer Visits</h3>
+          <p class="text-gray-300">Browse products and collections</p>
+          <div class="arrow-down"></div>
+        </div>
+
+        <div class="journey-step">
+          <div class="step-icon">🛍️</div>
+          <h3 class="font-semibold">Product Selection</h3>
+          <p class="text-gray-300">Choose from Stitched, Pre-Custom, or Custom</p>
+          <div class="arrow-down"></div>
+        </div>
+
+        <div class="journey-decision">
+          <div class="step-icon">❓</div>
+          <h3 class="font-semibold">Order Type?</h3>
+          <div class="decision-branches">
+            <div class="branch"><span>Ready-Made</span><div class="arrow-right"></div></div>
+            <div class="branch"><span>Custom</span><div class="arrow-left"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-800">
+    <div class="container mx-auto px-4 py-8 text-gray-400 text-sm flex flex-col sm:flex-row items-center justify-between">
+      <p>© <span id="year"></span> Luminara Clothing. All rights reserved.</p>
+      <div class="flex gap-4 mt-2 sm:mt-0">
+        <a href="#stitched" class="nav-link">Shop</a>
+        <a href="#custom-order" class="nav-link">Custom</a>
+        <a href="#infographic" class="nav-link">Insights</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- SPA & Business Logic -->
+  <script>
+    // Utility: Toast notifications
+    function showNotification(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast show ' + type;
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
+
+    // 8. Data Structure - Sample Products
+    /** @type {Array<any>} */
+    const products = [
+      {
+        id: 'st-001', name: 'Golden Noir Suit', category: 'stitched', subcategory: 'branded', brand: 'Aurum Couture',
+        price: 18500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Premium tailored suit with gold-accented detailing for statement occasions.',
+        specifications: { material: 'Wool Blend', pieces: '2-piece', size: ['S', 'M', 'L', 'XL'], colors: ['Black', 'Gold'] },
+        availability: 'in-stock', stock: 8, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: true,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'st-002', name: 'Ivory Silk Ensemble', category: 'stitched', subcategory: 'branded', brand: 'Velora',
+        price: 22500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1605684954998-c6138b0a94df?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Elegant ivory silk with flowing design and minimalist trims.',
+        specifications: { material: 'Silk', pieces: '3-piece', size: ['S', 'M', 'L'], colors: ['Ivory'] },
+        availability: 'in-stock', stock: 5, deliveryInfo: { freeDelivery: true, deliveryTime: '1-2 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'st-003', name: 'Midnight Embroidery', category: 'stitched', subcategory: 'copy', brand: 'Atelier Nova',
+        price: 13500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1542060748-10c28b62716b?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Hand-embellished embroidery with fine thread and beadwork.',
+        specifications: { material: 'Chiffon', pieces: '3-piece', size: ['M', 'L', 'XL'], colors: ['Navy', 'Gold'] },
+        availability: 'pre-order', stock: 0, deliveryInfo: { freeDelivery: false, deliveryTime: '5-7 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      // Pre-Custom
+      {
+        id: 'pc-001', name: 'Customizable Dress Base', category: 'pre-custom', subcategory: 'branded', brand: 'Forme',
+        price: 9500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1503342529542-f965f5e5c02b?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Base dress ready for custom appliqué and tailoring preferences.',
+        specifications: { material: 'Cotton', pieces: 'Dress', size: ['S', 'M', 'L', 'XL'], colors: ['White', 'Black'] },
+        availability: 'in-stock', stock: 12, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      // Jewelry
+      {
+        id: 'jw-001', name: 'Gilded Bracelet', category: 'jewelry', subcategory: 'handwear', brand: 'Maison Or',
+        price: 6500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1617038260897-3b1791fe9cac?q=80&w=1200&auto=format&fit=crop'],
+        description: '24k gold-plated bracelet with minimalist clasp and premium polish.',
+        specifications: { material: 'Gold-plated', length: '18cm', width: '5mm', size: [], colors: ['Gold'] },
+        availability: 'in-stock', stock: 20, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: true,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      // Additional Stitched (Branded & Copy)
+      {
+        id: 'st-004', name: 'Emerald Regal Suit', category: 'stitched', subcategory: 'branded', brand: 'Luminara Atelier',
+        price: 19900, currency: 'PKR', images: ['https://images.unsplash.com/photo-1516595438901-1f7ae568d88b?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Emerald-toned premium fabric with structured silhouette and subtle gold accents.',
+        specifications: { material: 'Wool Blend', pieces: '2-piece', size: ['S','M','L','XL'], colors: ['Emerald','Gold'] },
+        availability: 'in-stock', stock: 7, deliveryInfo: { freeDelivery: false, deliveryTime: '2-4 days' }, featured: true,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'st-005', name: 'Crimson Heritage Kurta', category: 'stitched', subcategory: 'copy', brand: 'Luminara Heritage',
+        price: 8900, currency: 'PKR', images: ['https://images.unsplash.com/photo-1620799139481-cf0ef0fcec9f?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Classic kurta with intricate threadwork inspired by vintage motifs.',
+        specifications: { material: 'Cotton', pieces: 'Kurta', size: ['S','M','L','XL','XXL'], colors: ['Crimson'] },
+        availability: 'in-stock', stock: 15, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      // Additional Pre-Custom
+      {
+        id: 'pc-002', name: 'Suit Base (Tailor-Ready)', category: 'pre-custom', subcategory: 'branded', brand: 'Luminara Studio',
+        price: 10500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1548883354-7622d3f07d5d?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Tailor-ready suit base with clean lines to apply your custom preferences.',
+        specifications: { material: 'Poly-Cotton', pieces: '2-piece', size: ['S','M','L','XL'], colors: ['Charcoal','Black'] },
+        availability: 'in-stock', stock: 10, deliveryInfo: { freeDelivery: false, deliveryTime: '2-4 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'pc-003', name: 'Skirt Base (Custom Hem)', category: 'pre-custom', subcategory: 'branded', brand: 'Luminara Studio',
+        price: 7200, currency: 'PKR', images: ['https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Minimalist skirt base allowing custom hem length, waist and embellishments.',
+        specifications: { material: 'Chiffon', pieces: 'Skirt', size: ['S','M','L'], colors: ['Black','Ivory'] },
+        availability: 'in-stock', stock: 18, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      // Additional Jewelry
+      {
+        id: 'jw-002', name: 'Aurora Necklace', category: 'jewelry', subcategory: 'handwear', brand: 'Luminara Jewels',
+        price: 11500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Radiant necklace with light-catching finish for evening wear.',
+        specifications: { material: 'Gold-plated', length: '45cm', width: '3mm', size: [], colors: ['Gold'] },
+        availability: 'in-stock', stock: 9, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: true,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'jw-003', name: 'Celeste Earrings', category: 'jewelry', subcategory: 'handwear', brand: 'Luminara Jewels',
+        price: 5400, currency: 'PKR', images: ['https://images.unsplash.com/photo-1609252925147-97a6a228cd5a?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Delicate drop earrings with micro-faceted stones for subtle shimmer.',
+        specifications: { material: 'Gold-plated', size: [], colors: ['Gold'] },
+        availability: 'in-stock', stock: 25, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'jw-004', name: 'Opulence Ring', category: 'jewelry', subcategory: 'handwear', brand: 'Luminara Jewels',
+        price: 7800, currency: 'PKR', images: ['https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Statement ring with high-lustre finish and smooth inner band for comfort.',
+        specifications: { material: 'Gold-plated', size: ['6','7','8','9'], colors: ['Gold'] },
+        availability: 'in-stock', stock: 14, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      // More Stitched
+      {
+        id: 'st-006', name: 'Sable Luxe Suit', category: 'stitched', subcategory: 'branded', brand: 'Luminara Atelier',
+        price: 20500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1556306535-abceb2e1f2b1?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Sleek sable suit with refined lapel and tonal stitching.',
+        specifications: { material: 'Wool', pieces: '2-piece', size: ['S','M','L','XL'], colors: ['Black'] },
+        availability: 'in-stock', stock: 6, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'st-007', name: 'Champagne Silk Set', category: 'stitched', subcategory: 'branded', brand: 'Luminara Couture',
+        price: 23900, currency: 'PKR', images: ['https://images.unsplash.com/photo-1520975693410-001d7aaa9a1b?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Lustrous silk set with graceful drape and elevated finishing.',
+        specifications: { material: 'Silk', pieces: '3-piece', size: ['S','M','L'], colors: ['Champagne'] },
+        availability: 'in-stock', stock: 4, deliveryInfo: { freeDelivery: true, deliveryTime: '1-2 days' }, featured: true,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'st-008', name: 'Obsidian Embellish Kurta', category: 'stitched', subcategory: 'copy', brand: 'Luminara Heritage',
+        price: 9900, currency: 'PKR', images: ['https://images.unsplash.com/photo-1513815973361-4b6c3f1c9a8b?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Hand-detailed embellishments over obsidian base for festive wear.',
+        specifications: { material: 'Cotton-Silk', pieces: 'Kurta', size: ['M','L','XL','XXL'], colors: ['Black','Gold'] },
+        availability: 'pre-order', stock: 0, deliveryInfo: { freeDelivery: false, deliveryTime: '4-6 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      // More Pre-Custom
+      {
+        id: 'pc-004', name: 'Blazer Base (Slim Fit)', category: 'pre-custom', subcategory: 'branded', brand: 'Luminara Studio',
+        price: 11200, currency: 'PKR', images: ['https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Slim-fit blazer base for adding lapel styles and button choices.',
+        specifications: { material: 'Poly-Wool', pieces: 'Blazer', size: ['S','M','L','XL'], colors: ['Navy','Black'] },
+        availability: 'in-stock', stock: 9, deliveryInfo: { freeDelivery: false, deliveryTime: '2-4 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'pc-005', name: 'Dress Base (A-line)', category: 'pre-custom', subcategory: 'branded', brand: 'Luminara Studio',
+        price: 8800, currency: 'PKR', images: ['https://images.unsplash.com/photo-1495121605193-b116b5b09a65?q=80&w=1200&auto=format&fit=crop'],
+        description: 'A-line silhouette base with adjustable waist and hem options.',
+        specifications: { material: 'Chiffon', pieces: 'Dress', size: ['S','M','L'], colors: ['Ivory','Blush'] },
+        availability: 'in-stock', stock: 13, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'pc-006', name: 'Trouser Base (Tailored)', category: 'pre-custom', subcategory: 'branded', brand: 'Luminara Studio',
+        price: 6400, currency: 'PKR', images: ['https://images.unsplash.com/photo-1592878849126-769f71a3f3c4?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Tailored trouser base ready for taper, pleat, and cuff customizations.',
+        specifications: { material: 'Cotton', pieces: 'Trousers', size: ['S','M','L','XL'], colors: ['Charcoal','Khaki'] },
+        availability: 'in-stock', stock: 22, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'pc-007', name: 'Dupatta Base (Embellish-Ready)', category: 'pre-custom', subcategory: 'branded', brand: 'Luminara Studio',
+        price: 5200, currency: 'PKR', images: ['https://images.unsplash.com/photo-1618354691423-1a5f84ec9f5a?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Lightweight dupatta base suitable for lace, tassels, and sequin add-ons.',
+        specifications: { material: 'Net/Chiffon', pieces: 'Dupatta', size: [], colors: ['Ivory','Gold'] },
+        availability: 'in-stock', stock: 30, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'pc-008', name: 'Shirt Base (Embroider-Ready)', category: 'pre-custom', subcategory: 'branded', brand: 'Luminara Studio',
+        price: 5700, currency: 'PKR', images: ['https://images.unsplash.com/photo-1520971347561-7e0b3b1c8f4e?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Plain shirt base ideal for embroidery, piping, and neckline designs.',
+        specifications: { material: 'Cotton-Lawn', pieces: 'Shirt', size: ['S','M','L','XL'], colors: ['White','Beige'] },
+        availability: 'in-stock', stock: 26, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      // More Jewelry
+      {
+        id: 'jw-005', name: 'Starlight Bangle', category: 'jewelry', subcategory: 'handwear', brand: 'Luminara Jewels',
+        price: 6900, currency: 'PKR', images: ['https://images.unsplash.com/photo-1562158070-8f90b5f1f1c1?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Polished bangle with ridged texture for a modern look.',
+        specifications: { material: 'Gold-plated', size: ['S','M','L'], colors: ['Gold'] },
+        availability: 'in-stock', stock: 17, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'jw-006', name: 'Luna Pendant', category: 'jewelry', subcategory: 'handwear', brand: 'Luminara Jewels',
+        price: 9800, currency: 'PKR', images: ['https://images.unsplash.com/photo-1585386959984-a41552231670?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Moon-inspired pendant with smooth bezel setting.',
+        specifications: { material: 'Gold-plated', length: '42cm', size: [], colors: ['Gold'] },
+        availability: 'in-stock', stock: 11, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'jw-007', name: 'Solstice Cuff', category: 'jewelry', subcategory: 'handwear', brand: 'Luminara Jewels',
+        price: 8200, currency: 'PKR', images: ['https://images.unsplash.com/photo-1635671368051-e3d50a4ca523?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Open cuff bracelet with tapered ends for comfortable fit.',
+        specifications: { material: 'Gold-plated', size: ['S','M','L'], colors: ['Gold'] },
+        availability: 'in-stock', stock: 10, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'jw-008', name: 'Halo Studs', category: 'jewelry', subcategory: 'handwear', brand: 'Luminara Jewels',
+        price: 4600, currency: 'PKR', images: ['https://images.unsplash.com/photo-1599643477877-530eb83abc8e?q=80&w=1200&auto=format&fit=crop'],
+        description: 'Classic stud earrings with halo-like glint, perfect for daily wear.',
+        specifications: { material: 'Gold-plated', size: [], colors: ['Gold'] },
+        availability: 'in-stock', stock: 28, deliveryInfo: { freeDelivery: false, deliveryTime: '2-3 days' }, featured: false,
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+      }
+    ];
+
+    // Helpers
+    const currencyFormat = (num) => 'PKR ' + Number(num || 0).toLocaleString();
+
+    // 5. Shopping Cart System
+    class ShoppingCart {
+      constructor() {
+        this.items = JSON.parse(localStorage.getItem('cart')) || [];
+        this.updateCartUI();
+      }
+      addItem(product, quantity = 1) {
+        const existingItem = this.items.find((item) => item.id === product.id);
+        if (existingItem) {
+          existingItem.quantity += quantity;
+        } else {
+          this.items.push({ ...product, quantity });
+        }
+        this.saveCart();
+        this.updateCartUI();
+      }
+      removeItem(productId) {
+        this.items = this.items.filter((item) => item.id !== productId);
+        this.saveCart();
+        this.updateCartUI();
+      }
+      updateQuantity(productId, quantity) {
+        const item = this.items.find((i) => i.id === productId);
+        if (item) {
+          item.quantity = Math.max(0, quantity);
+          if (item.quantity === 0) {
+            this.removeItem(productId);
+          } else {
+            this.saveCart();
+            this.updateCartUI();
+          }
+        }
+      }
+      getTotal() { return this.items.reduce((t, i) => t + i.price * i.quantity, 0); }
+      getItemCount() { return this.items.reduce((c, i) => c + i.quantity, 0); }
+      saveCart() { localStorage.setItem('cart', JSON.stringify(this.items)); }
+      clearCart() { this.items = []; this.saveCart(); this.updateCartUI(); }
+      updateCartUI() {
+        const countNode = document.querySelector('.cart-count');
+        if (countNode) countNode.textContent = this.getItemCount();
+        if (document.getElementById('cart-modal').classList.contains('active')) {
+          this.renderCartModal();
+        }
+      }
+      renderCartModal() {
+        const itemsWrap = document.getElementById('cart-items');
+        itemsWrap.innerHTML = '';
+        if (this.items.length === 0) {
+          itemsWrap.innerHTML = '<p class="text-gray-400">Your cart is empty.</p>';
+        } else {
+          this.items.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'flex gap-3 items-center bg-gray-800 p-3 rounded-lg';
+            row.innerHTML = `
+              <img src="${(item.images && item.images[0]) || ''}" alt="${item.name}" class="h-16 w-16 object-cover rounded" />
+              <div class="flex-1">
+                <div class="flex justify-between">
+                  <h4 class="font-semibold">${item.name}</h4>
+                  <button class="text-red-400 hover:text-red-300" data-remove="${item.id}">Remove</button>
+                </div>
+                <div class="text-sm text-gray-300">${item.brand}</div>
+                <div class="flex items-center gap-2 mt-2">
+                  <input type="number" min="1" value="${item.quantity}" class="form-input w-20" data-qty="${item.id}" />
+                  <span class="text-yellow-500 font-semibold ml-auto">${currencyFormat(item.price * item.quantity)}</span>
+                </div>
+              </div>
+            `;
+            itemsWrap.appendChild(row);
+          });
+        }
+
+        const deliveryFee = checkout.calculateDeliveryFee(this.items);
+        const subtotal = this.getTotal();
+        const total = subtotal + deliveryFee;
+        document.getElementById('cart-subtotal').textContent = currencyFormat(subtotal);
+        document.getElementById('cart-delivery').textContent = currencyFormat(deliveryFee);
+        document.getElementById('cart-total').textContent = currencyFormat(total);
+
+        // Payment methods based on items
+        const methods = checkout.getPaymentMethods(this.items);
+        const methodSelect = document.getElementById('paymentMethod');
+        methodSelect.innerHTML = '';
+        methods.forEach((m) => {
+          const opt = document.createElement('option');
+          opt.value = m; opt.textContent = m === 'cod' ? 'Cash on Delivery' : 'Advance Payment';
+          methodSelect.appendChild(opt);
+        });
+      }
+    }
+
+    class CheckoutManager {
+      constructor(cart) { this.cart = cart; }
+      calculateDeliveryFee(items) {
+        const hasCustomItems = items.some((i) => i.category === 'custom');
+        if (hasCustomItems) return 0;
+        const hasDeliveryItems = items.some((i) => i.category === 'stitched' || i.category === 'jewelry' || i.category === 'pre-custom');
+        return hasDeliveryItems ? 200 : 0;
+      }
+      getPaymentMethods(items) {
+        const hasCustomItems = items.some((i) => i.category === 'custom');
+        return hasCustomItems ? ['advance'] : ['cod', 'advance'];
+      }
+      processOrder(orderData) {
+        const order = {
+          id: 'ORD-' + Date.now(),
+          ...orderData,
+          subtotal: this.cart.getTotal(),
+          deliveryFee: this.calculateDeliveryFee(orderData.items),
+          total: this.cart.getTotal() + this.calculateDeliveryFee(orderData.items),
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        };
+        const orders = JSON.parse(localStorage.getItem('orders')) || [];
+        orders.push(order);
+        localStorage.setItem('orders', JSON.stringify(orders));
+        return order;
+      }
+    }
+
+    // 6. Authentication System
+    class AuthManager {
+      constructor() {
+        this.user = JSON.parse(localStorage.getItem('user')) || null;
+        this.initializeGoogleAuth();
+        this.updateAuthUI();
+      }
+      initializeGoogleAuth() {
+        const init = () => {
+          if (!window.google || !google.accounts || !google.accounts.id) return;
+          google.accounts.id.initialize({
+            client_id: 'YOUR_GOOGLE_CLIENT_ID',
+            callback: this.handleCredentialResponse.bind(this),
+          });
+          const target = document.getElementById('google-signin');
+          if (target) {
+            google.accounts.id.renderButton(target, { theme: 'outline', size: 'large' });
+          }
+        };
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+          init();
+        } else {
+          window.addEventListener('DOMContentLoaded', init);
+        }
+      }
+      handleCredentialResponse(response) {
+        try {
+          const payload = JSON.parse(atob(response.credential.split('.')[1]));
+          const user = { id: payload.sub, name: payload.name, email: payload.email, picture: payload.picture };
+          this.loginUser(user);
+          closeAuthModal();
+        } catch (e) {
+          showNotification('Login failed', 'error');
+        }
+      }
+      loginUser(user) {
+        this.user = user;
+        localStorage.setItem('user', JSON.stringify(user));
+        this.updateAuthUI();
+        showNotification('Successfully logged in!', 'success');
+      }
+      logoutUser() {
+        this.user = null;
+        localStorage.removeItem('user');
+        this.updateAuthUI();
+        if (confirm('Do you want to clear your cart as well?')) { cart.clearCart(); }
+      }
+      updateAuthUI() {
+        const loginBtn = document.getElementById('login-btn');
+        const userMenu = document.getElementById('user-menu');
+        if (this.user) {
+          if (loginBtn) loginBtn.style.display = 'none';
+          if (userMenu) {
+            userMenu.style.display = 'flex';
+            userMenu.querySelector('.user-name').textContent = this.user.name || '';
+            userMenu.querySelector('.user-avatar').src = this.user.picture || '';
+          }
+        } else {
+          if (loginBtn) loginBtn.style.display = 'inline-flex';
+          if (userMenu) userMenu.style.display = 'none';
+        }
+      }
+      isLoggedIn() { return this.user !== null; }
+      requireAuth(callback) {
+        if (this.isLoggedIn()) { callback(); }
+        else {
+          showNotification('Please log in to continue', 'warning');
+          openAuthModal();
+        }
+      }
+    }
+
+    // Instances
+    const cart = new ShoppingCart();
+    const checkout = new CheckoutManager(cart);
+    const auth = new AuthManager();
+
+    // (Wishlist removed)
+
+    // Render Functions
+    function createProductCard(product) {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.dataset.productId = product.id;
+      const availabilityText = product.availability === 'in-stock' ? 'In Stock' : (product.availability === 'pre-order' ? 'Pre-Order' : 'Out of Stock');
+      card.innerHTML = `
+        <div class="relative overflow-hidden rounded-lg mb-4 cursor-pointer" data-open-modal="${product.id}">
+          <img data-src="${product.images[0]}" alt="${product.name}" class="w-full h-64 object-cover transition-transform duration-300 hover:scale-105 lazy" />
+          <div class="absolute top-4 right-4">
+            <span class="bg-yellow-500 text-black px-2 py-1 rounded text-sm font-semibold">${availabilityText}</span>
+          </div>
+        </div>
+        <h3 class="text-xl font-semibold mb-1">${product.name}</h3>
+        <p class="text-gray-400 mb-2">${product.brand}</p>
+        <p class="text-yellow-500 text-2xl font-bold mb-4">${currencyFormat(product.price)}</p>
+        <button class="btn-primary w-full add-to-cart" data-product-id="${product.id}" ${product.availability === 'out-of-stock' ? 'disabled' : ''}>Add to Cart</button>
+      `;
+      return card;
+    }
+
+    function renderSectionProducts(sectionId, filterFn) {
+      const wrap = document.getElementById(sectionId);
+      wrap.innerHTML = '';
+      products.filter(filterFn).forEach((p) => wrap.appendChild(createProductCard(p)));
+      setupLazyImages();
+    }
+
+    // Search & sort state and utilities
+    const uiState = {
+      stitched: { subcat: 'branded', search: '', sort: 'featured' },
+      precustom: { search: '', sort: 'featured' },
+      jewelry: { search: '', sort: 'featured' },
+    };
+
+    function applySearchAndSort(list, sectionKey) {
+      const state = uiState[sectionKey];
+      const q = (state.search || '').toLowerCase();
+      let filtered = list.filter(p => !q || (p.name + ' ' + p.brand).toLowerCase().includes(q));
+      switch (state.sort) {
+        case 'price-asc':
+          filtered.sort((a,b)=>a.price-b.price); break;
+        case 'price-desc':
+          filtered.sort((a,b)=>b.price-a.price); break;
+        case 'newest':
+          filtered.sort((a,b)=>new Date(b.createdAt) - new Date(a.createdAt)); break;
+        default:
+          filtered.sort((a,b)=> (b.featured===true)-(a.featured===true) || (new Date(b.createdAt) - new Date(a.createdAt)));
+      }
+      return filtered;
+    }
+
+    function renderStitched() {
+      const base = products.filter(p => p.category==='stitched' && p.subcategory===uiState.stitched.subcat);
+      const list = applySearchAndSort(base, 'stitched');
+      const wrap = document.getElementById('stitched-products');
+      wrap.innerHTML='';
+      list.forEach(p=>wrap.appendChild(createProductCard(p)));
+      setupLazyImages();
+    }
+
+    function renderPreCustom() {
+      const base = products.filter(p => p.category==='pre-custom');
+      const list = applySearchAndSort(base, 'precustom');
+      const wrap = document.getElementById('pre-custom-products');
+      wrap.innerHTML='';
+      list.forEach(p=>wrap.appendChild(createProductCard(p)));
+      setupLazyImages();
+    }
+
+    function renderJewelry() {
+      const base = products.filter(p => p.category==='jewelry');
+      const list = applySearchAndSort(base, 'jewelry');
+      const wrap = document.getElementById('jewelry-products');
+      wrap.innerHTML='';
+      list.forEach(p=>wrap.appendChild(createProductCard(p)));
+      setupLazyImages();
+    }
+
+    function renderAllProducts() {
+      renderStitched();
+      renderPreCustom();
+      renderJewelry();
+      renderOrders();
+    }
+    
+
+    function renderOrders() {
+      const wrap = document.getElementById('orders-list');
+      if (!wrap) return;
+      const orders = JSON.parse(localStorage.getItem('orders') || '[]').reverse();
+      wrap.innerHTML = '';
+      if (orders.length === 0) {
+        wrap.innerHTML = '<p class="text-gray-400">No orders yet.</p>';
+        return;
+      }
+      orders.forEach(o => {
+        const div = document.createElement('div');
+        div.className = 'bg-gray-800 p-4 rounded-lg border border-gray-700';
+        div.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="font-semibold">${o.id}</div>
+              <div class="text-gray-400 text-sm">${new Date(o.createdAt).toLocaleString()} • ${o.items.length} items • ${o.paymentMethod.toUpperCase()}</div>
+            </div>
+            <div class="text-yellow-500 font-bold">${currencyFormat(o.total)}</div>
+          </div>
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    // Modal Logic - Product
+    const productModal = document.getElementById('product-modal');
+    const modalImage = document.getElementById('modal-image');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBrand = document.getElementById('modal-brand');
+    const modalPrice = document.getElementById('modal-price');
+    const modalSpecs = document.getElementById('modal-specs');
+    const modalDesc = document.getElementById('modal-description');
+    const modalAddBtn = document.getElementById('modal-add-to-cart');
+
+    function openProductModal(product) {
+      modalImage.src = product.images[0];
+      modalTitle.textContent = product.name;
+      modalBrand.textContent = product.brand;
+      modalPrice.textContent = currencyFormat(product.price);
+      modalDesc.textContent = product.description;
+      modalSpecs.innerHTML = '';
+      Object.entries(product.specifications || {}).forEach(([key, value]) => {
+        const line = document.createElement('div');
+        const text = Array.isArray(value) ? value.join(', ') : value;
+        line.textContent = `${key}: ${text}`;
+        modalSpecs.appendChild(line);
+      });
+      modalAddBtn.dataset.productId = product.id;
+      productModal.classList.add('active');
+    }
+    function closeProductModal() { productModal.classList.remove('active'); }
+
+    document.getElementById('modal-close').addEventListener('click', closeProductModal);
+    productModal.addEventListener('click', (e) => { if (e.target === productModal) closeProductModal(); });
+
+    // Cart Modal Logic
+    const cartModal = document.getElementById('cart-modal');
+    function openCartModal() { cartModal.classList.add('active'); cart.renderCartModal(); }
+    function closeCartModal() { cartModal.classList.remove('active'); }
+
+    // Auth Modal Logic
+    const authModal = document.getElementById('auth-modal');
+    function openAuthModal() { authModal.classList.add('active'); }
+    function closeAuthModal() { authModal.classList.remove('active'); }
+
+    // Event Delegation
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+
+      // Open product modal from image container
+      const openId = target.closest('[data-open-modal]')?.dataset.openModal;
+      if (openId) {
+        const product = products.find((p) => p.id === openId);
+        if (product) openProductModal(product);
+      }
+
+      // Add to cart (card button) – handle first and stop further processing
+      const addBtn = target.closest('.add-to-cart');
+      if (addBtn) {
+        const id = addBtn.dataset.productId;
+        const product = products.find((p) => p.id === id);
+        if (product) {
+          cart.addItem(product, 1);
+          showNotification('Added to cart');
+        }
+        return;
+      }
+
+      // Modal add to cart
+      if (target.id === 'modal-add-to-cart' || target.closest('#modal-add-to-cart')) {
+        const id = (target.dataset && target.dataset.productId) || target.closest('#modal-add-to-cart').dataset.productId;
+        const product = products.find((p) => p.id === id);
+        if (product) {
+          cart.addItem(product, 1);
+          closeProductModal();
+          showNotification('Added to cart');
+        }
+        return;
+      }
+
+      // (Wishlist removed)
+
+      // Cart open/close (support clicks on nested SVG/badge)
+      if (target.closest && target.closest('#cart-toggle')) openCartModal();
+      if (target.hasAttribute('data-cart-close')) closeCartModal();
+
+      // Auth open/close
+      if (target.id === 'login-btn') openAuthModal();
+      if (target.hasAttribute('data-auth-close')) closeAuthModal();
+
+      // Cart item remove
+      if (target.hasAttribute('data-remove')) {
+        const id = target.getAttribute('data-remove');
+        cart.removeItem(id);
+      }
+    });
+
+    // Cart quantity change
+    document.getElementById('cart-items').addEventListener('input', (e) => {
+      const inp = e.target;
+      const id = inp.getAttribute('data-qty');
+      if (id) {
+        const qty = parseInt(inp.value || '1', 10);
+        cart.updateQuantity(id, qty);
+      }
+    });
+
+    // Clear cart
+    document.getElementById('clear-cart').addEventListener('click', () => cart.clearCart());
+
+    // Checkout submit
+    document.getElementById('checkout-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      auth.requireAuth(() => {
+        const form = e.target;
+        if (cart.items.length === 0) { showNotification('Your cart is empty', 'warning'); return; }
+        const orderData = {
+          customerInfo: { name: form.name.value, email: form.email.value, address: form.address.value },
+          paymentMethod: form.paymentMethod.value,
+          items: cart.items.map((i) => ({ id: i.id, quantity: i.quantity, price: i.price, category: i.category })),
+        };
+        const order = checkout.processOrder(orderData);
+        showNotification('Order placed: ' + order.id, 'success');
+        cart.clearCart();
+        closeCartModal();
+        renderOrders();
+      });
+    });
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', () => auth.logoutUser());
+
+    // Demo Login (fallback when Google button isn't available)
+    const demoBtn = document.getElementById('demo-login');
+    if (demoBtn) {
+      demoBtn.addEventListener('click', () => {
+        const demoUser = {
+          id: 'demo-' + Date.now(),
+          name: 'Demo User',
+          email: 'demo@luminara.test',
+          picture: 'https://ui-avatars.com/api/?name=Demo+User&background=FFD700&color=000'
+        };
+        auth.loginUser(demoUser);
+        closeAuthModal();
+      });
+    }
+
+    // Sub-nav for stitched
+    document.querySelectorAll('#stitched .sub-nav-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#stitched .sub-nav-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        uiState.stitched.subcat = btn.dataset.category;
+        renderStitched();
+      });
+    });
+
+    // Search and sort controls
+    const searchStitched = document.getElementById('search-stitched');
+    const sortStitched = document.getElementById('sort-stitched');
+    if (searchStitched) searchStitched.addEventListener('input', () => { uiState.stitched.search = searchStitched.value; renderStitched(); });
+    if (sortStitched) sortStitched.addEventListener('change', () => { uiState.stitched.sort = sortStitched.value; renderStitched(); });
+
+    const searchPre = document.getElementById('search-precustom');
+    const sortPre = document.getElementById('sort-precustom');
+    if (searchPre) searchPre.addEventListener('input', () => { uiState.precustom.search = searchPre.value; renderPreCustom(); });
+    if (sortPre) sortPre.addEventListener('change', () => { uiState.precustom.sort = sortPre.value; renderPreCustom(); });
+
+    const searchJew = document.getElementById('search-jewelry');
+    const sortJew = document.getElementById('sort-jewelry');
+    if (searchJew) searchJew.addEventListener('input', () => { uiState.jewelry.search = searchJew.value; renderJewelry(); });
+    if (sortJew) sortJew.addEventListener('change', () => { uiState.jewelry.sort = sortJew.value; renderJewelry(); });
+
+    // 10. Performance - Lazy images
+    let imageObserver;
+    function setupLazyImages() {
+      const lazyImages = document.querySelectorAll('img[data-src]');
+      if (imageObserver) lazyImages.forEach((img) => imageObserver.observe(img));
+    }
+    imageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = img.dataset.src;
+          img.classList.remove('lazy');
+          observer.unobserve(img);
+        }
+      });
+    });
+
+    // Smooth scroll for nav links
+    document.querySelectorAll('a[href^="#"]').forEach((a) => {
+      a.addEventListener('click', (e) => {
+        const href = a.getAttribute('href');
+        const target = document.querySelector(href);
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      });
+    });
+
+    // 7. Business Analytics - Lazy load via dynamic module from Blob
+    async function loadCharts() {
+      if (window.chartLoaded) return;
+      const analyticsModuleCode = 'export class BusinessAnalytics {\n'
+        + '  constructor() { this.initializeCharts(); }\n'
+        + '  initializeCharts() { this.createRevenueChart(); this.createProductCategoryChart(); this.createCustomerSatisfactionChart(); this.createGrowthTrendChart(); }\n'
+        + '  createRevenueChart() { const ctx = document.getElementById("revenueChart").getContext("2d"); new Chart(ctx, { type: "doughnut", data: { labels: ["Stitched", "Pre-Custom", "Custom Orders", "Jewelry"], datasets: [{ data: [45, 25, 20, 10], backgroundColor: ["#FFD700", "#F0E68C", "#DAA520", "#B8860B"], borderColor: "#1a1a1a", borderWidth: 3 }] }, options: { responsive: true, plugins: { legend: { labels: { color: "#FFFFFF", font: { family: "Roboto", size: 14 } } }, tooltip: { callbacks: { title: function() { return "Revenue Breakdown"; }, label: function(c) { return c.label + ": " + c.parsed + "%"; } } } } } }); }\n'
+        + '  createProductCategoryChart() { const ctx = document.getElementById("categoryChart").getContext("2d"); new Chart(ctx, { type: "bar", data: { labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], datasets: [{ label: "Stitched", data: [120,135,145,160,155,170], backgroundColor: "#FFD700", borderRadius: 5 }, { label: "Custom Orders", data: [45,50,48,65,70,75], backgroundColor: "#F0E68C", borderRadius: 5 }, { label: "Jewelry", data: [30,35,40,38,42,45], backgroundColor: "#DAA520", borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#FFFFFF" }, grid: { color: "#2c2c2c" } }, x: { ticks: { color: "#FFFFFF" }, grid: { color: "#2c2c2c" } } }, plugins: { legend: { labels: { color: "#FFFFFF" } } } } }); }\n'
+        + '  createCustomerSatisfactionChart() { const ctx = document.getElementById("satisfactionChart").getContext("2d"); new Chart(ctx, { type: "radar", data: { labels: ["Quality", "Delivery Time", "Customer Service", "Value for Money", "Design Innovation"], datasets: [{ label: "Customer Satisfaction", data: [9.2, 8.5, 9.0, 8.8, 9.1], borderColor: "#FFD700", backgroundColor: "rgba(255, 215, 0, 0.1)", pointBackgroundColor: "#FFD700", pointBorderColor: "#FFD700", borderWidth: 2, pointRadius: 5 }] }, options: { responsive: true, scales: { r: { beginAtZero: true, max: 10, ticks: { color: "#FFFFFF", backdropColor: "transparent" }, grid: { color: "#2c2c2c" }, angleLines: { color: "#2c2c2c" } } }, plugins: { legend: { labels: { color: "#FFFFFF" } } } } }); }\n'
+        + '  createGrowthTrendChart() { const ctx = document.getElementById("growthChart").getContext("2d"); new Chart(ctx, { type: "line", data: { labels: ["Q1 2023","Q2 2023","Q3 2023","Q4 2023","Q1 2024","Q2 2024"], datasets: [{ label: "Revenue Growth (PKR)", data: [250000,280000,320000,380000,420000,450000], borderColor: "#FFD700", backgroundColor: "rgba(255, 215, 0, 0.1)", tension: 0.4, borderWidth: 3, pointRadius: 6, pointBackgroundColor: "#FFD700", fill: true }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#FFFFFF", callback: function(v) { return "PKR " + Number(v).toLocaleString(); } }, grid: { color: "#2c2c2c" } }, x: { ticks: { color: "#FFFFFF" }, grid: { color: "#2c2c2c" } } }, plugins: { legend: { labels: { color: "#FFFFFF" } }, tooltip: { callbacks: { title: function() { return "Growth Analysis"; }, label: function(c) { return "Revenue: PKR " + Number(c.parsed.y).toLocaleString(); } } } } } }); }\n'
+        + '}';
+      const blob = new Blob([analyticsModuleCode], { type: 'text/javascript' });
+      const url = URL.createObjectURL(blob);
+      try {
+        const mod = await import(url);
+        window.analytics = new mod.BusinessAnalytics();
+        window.chartLoaded = true;
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    }
+
+    const infographicObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (entry.isIntersecting) loadCharts(); });
+    });
+    const infographicEl = document.getElementById('infographic');
+    if (infographicEl) infographicObserver.observe(infographicEl);
+
+    // Init
+    document.getElementById('year').textContent = new Date().getFullYear();
+    renderAllProducts();
+  </script>
+</body>
+</html>
+
+
