@@ -7,24 +7,25 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --bg-primary: #1a1a1a;
-      --bg-secondary: #2c2c2c;
+      --bg-primary: #000000;
+      --bg-secondary: #0a0a0a;
       --gold-primary: #FFD700;
       --text-primary: #FFFFFF;
-      --text-secondary: #cccccc;
+      --text-secondary: #b3b3b3;
     }
     body { background: var(--bg-primary); color: var(--text-primary); font-family: Roboto, system-ui, -apple-system, Segoe UI, Inter, Helvetica, Arial, sans-serif; }
-    .card { background: #111827; border: 1px solid #374151; border-radius: 0.75rem; }
+    .card { background: var(--bg-secondary); border: 1px solid #1a1a1a; border-radius: 0.75rem; }
     .btn-primary { background: #FFD700; color: #000; font-weight: 700; padding: 0.6rem 1rem; border-radius: 0.5rem; }
     .btn-secondary { border: 1px solid #FFD700; color: #FFD700; font-weight: 700; padding: 0.6rem 1rem; border-radius: 0.5rem; }
     .btn-danger { border: 1px solid #dc2626; color: #fecaca; font-weight: 700; padding: 0.5rem 0.8rem; border-radius: 0.5rem; }
-    .form-input { background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 0.5rem; padding: 0.5rem 0.8rem; width: 100%; }
-    .form-input:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 0 3px rgba(255,215,0,.25); }
-    .badge { background: #272e3a; border: 1px solid #374151; border-radius: 9999px; padding: 0.15rem 0.5rem; font-size: 0.75rem; color: #e5e7eb; }
+    .form-input { background: #0f0f0f; border: 1px solid #1a1a1a; color: #fff; border-radius: 0.5rem; padding: 0.5rem 0.8rem; width: 100%; }
+    .form-input::placeholder { color: #7f7f7f; }
+    .form-input:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 0 3px rgba(255,215,0,.18); }
+    .badge { background: #0d0d0d; border: 1px solid #1a1a1a; border-radius: 9999px; padding: 0.15rem 0.5rem; font-size: 0.75rem; color: #e5e7eb; }
   </style>
 </head>
 <body>
-  <header class="border-b border-gray-800">
+  <header class="border-b border-gray-800" style="background: rgba(0,0,0,.95)">
     <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
       <div class="text-xl font-bold text-yellow-500">Luminara Manager Dashboard</div>
       <div class="flex items-center gap-2">

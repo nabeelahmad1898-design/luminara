@@ -8,18 +8,19 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
-      --bg-primary: #1a1a1a;
-      --bg-secondary: #2c2c2c;
+      --bg-primary: #000000;
+      --bg-secondary: #0a0a0a;
       --gold-primary: #FFD700;
       --text-primary: #FFFFFF;
-      --text-secondary: #cccccc;
+      --text-secondary: #b3b3b3;
     }
     body { background: var(--bg-primary); color: var(--text-primary); font-family: Roboto, system-ui, -apple-system, Segoe UI, Inter, Helvetica, Arial, sans-serif; }
-    .card { background: #111827; border: 1px solid #374151; border-radius: 0.75rem; }
-    .form-input { background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 0.5rem; padding: 0.75rem 1rem; width: 100%; }
-    .form-input:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 0 3px rgba(255,215,0,.25); }
-    .btn-primary { background: #FFD700; color: #000; font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; }
-    .btn-secondary { border: 1px solid #FFD700; color: #FFD700; font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; }
+    .card { background: var(--bg-secondary); border: 1px solid #1a1a1a; border-radius: 0.75rem; }
+    .form-input { background: #0f0f0f; border: 1px solid #1a1a1a; color: #fff; border-radius: 0.5rem; padding: 0.75rem 1rem; width: 100%; }
+    .form-input::placeholder { color: #7f7f7f; }
+    .form-input:focus { outline: none; border-color: var(--gold-primary); box-shadow: 0 0 0 3px rgba(255,215,0,.18); }
+    .btn-primary { background: var(--gold-primary); color: #000; font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; }
+    .btn-secondary { border: 1px solid var(--gold-primary); color: var(--gold-primary); font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; }
     .btn-secondary:hover { background: #FFD700; color: #000; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
