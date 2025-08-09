@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manager Login | Luminara</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2c2c2c;
+      --gold-primary: #FFD700;
+      --text-primary: #FFFFFF;
+      --text-secondary: #cccccc;
+    }
+    body { background: var(--bg-primary); color: var(--text-primary); font-family: Roboto, system-ui, -apple-system, Segoe UI, Inter, Helvetica, Arial, sans-serif; }
+    .card { background: #111827; border: 1px solid #374151; border-radius: 0.75rem; }
+    .form-input { background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 0.5rem; padding: 0.75rem 1rem; width: 100%; }
+    .form-input:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 0 3px rgba(255,215,0,.25); }
+    .btn-primary { background: #FFD700; color: #000; font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; }
+    .btn-secondary { border: 1px solid #FFD700; color: #FFD700; font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; }
+    .btn-secondary:hover { background: #FFD700; color: #000; }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen grid place-items-center p-4">
+    <div class="card w-full max-w-md p-6">
+      <div class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-yellow-500">Luminara Manager Portal</h1>
+        <p class="text-sm text-gray-300 mt-1">Sign in to manage products and content</p>
+      </div>
+
+      <div id="setup-panel" class="hidden">
+        <h2 class="text-lg font-semibold mb-3">Initial Setup</h2>
+        <p class="text-gray-300 text-sm mb-4">Create an admin password. This is stored locally in this browser only.</p>
+        <form id="setup-form" class="space-y-3">
+          <input class="form-input" type="email" id="setup-email" placeholder="Admin email (optional)" />
+          <input class="form-input" type="password" id="setup-pass" placeholder="Create password" required />
+          <input class="form-input" type="password" id="setup-pass2" placeholder="Confirm password" required />
+          <button class="btn-primary w-full" type="submit">Save & Continue</button>
+        </form>
+        <button id="switch-to-login" class="btn-secondary w-full mt-3">I already have a password</button>
+      </div>
+
+      <div id="login-panel" class="hidden">
+        <h2 class="text-lg font-semibold mb-3">Manager Login</h2>
+        <form id="login-form" class="space-y-3">
+          <input class="form-input" type="password" id="login-pass" placeholder="Password" required />
+          <button class="btn-primary w-full" type="submit">Login</button>
+        </form>
+        <button id="switch-to-setup" class="btn-secondary w-full mt-3 hidden">Set up password on this device</button>
+      </div>
+
+      <div class="text-center mt-6">
+        <a href="index.html" class="text-sm text-gray-400 hover:text-yellow-500">← Back to Storefront</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Minimal client-side session; for real deployments use a backend.
+    const ADMIN_HASH_KEY = 'adminPasswordHash';
+    const ADMIN_EMAIL_KEY = 'adminEmail';
+    const ADMIN_SESSION_KEY = 'adminSession';
+
+    function getAdminHash() {
+      return localStorage.getItem(ADMIN_HASH_KEY);
+    }
+    function setAdminHash(hash) {
+      localStorage.setItem(ADMIN_HASH_KEY, hash);
+    }
+    function setAdminEmail(email) {
+      if (email) localStorage.setItem(ADMIN_EMAIL_KEY, email);
+    }
+    function createSession() {
+      const token = 'adm-' + Math.random().toString(36).slice(2) + Date.now();
+      const session = { token, expiresAt: Date.now() + 12 * 60 * 60 * 1000 };
+      localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+      return session;
+    }
+    function getSession() {
+      try {
+        const obj = JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY) || 'null');
+        if (!obj) return null;
+        if (Date.now() > (obj.expiresAt || 0)) { localStorage.removeItem(ADMIN_SESSION_KEY); return null; }
+        return obj;
+      } catch { return null; }
+    }
+    async function sha256Hex(text) {
+      const enc = new TextEncoder();
+      const data = enc.encode(text);
+      const digest = await crypto.subtle.digest('SHA-256', data);
+      const bytes = Array.from(new Uint8Array(digest));
+      return bytes.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function show(panel) {
+      document.getElementById('setup-panel').classList.add('hidden');
+      document.getElementById('login-panel').classList.add('hidden');
+      document.getElementById(panel).classList.remove('hidden');
+    }
+
+    // Redirect if already logged in
+    const existing = getSession();
+    if (existing) { window.location.href = 'dashboard.html'; }
+
+    const hasPassword = !!getAdminHash();
+    if (hasPassword) { show('login-panel'); } else { show('setup-panel'); }
+
+    document.getElementById('switch-to-login').addEventListener('click', () => show('login-panel'));
+    const switchToSetupBtn = document.getElementById('switch-to-setup');
+    if (!hasPassword) { switchToSetupBtn.classList.remove('hidden'); }
+    switchToSetupBtn.addEventListener('click', () => show('setup-panel'));
+
+    document.getElementById('setup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('setup-email').value.trim();
+      const p1 = document.getElementById('setup-pass').value;
+      const p2 = document.getElementById('setup-pass2').value;
+      if (p1.length < 6) { alert('Password must be at least 6 characters'); return; }
+      if (p1 !== p2) { alert('Passwords do not match'); return; }
+      const hash = await sha256Hex(p1);
+      setAdminHash(hash);
+      setAdminEmail(email);
+      createSession();
+      window.location.href = 'dashboard.html';
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pass = document.getElementById('login-pass').value;
+      const hash = await sha256Hex(pass);
+      const stored = getAdminHash();
+      if (stored && stored === hash) {
+        createSession();
+        window.location.href = 'dashboard.html';
+      } else {
+        alert('Invalid password');
+      }
+    });
+  </script>
+</body>
+</html>
+
+

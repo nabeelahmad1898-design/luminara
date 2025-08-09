@@ -36,8 +36,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
-  <!-- Google OAuth -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- Manager portal uses a simple local session (no customer auth) -->
 
   <style>
     :root {
@@ -118,7 +117,7 @@
           <li><a href="#infographic" class="nav-link">Our Story</a></li>
         </ul>
 
-        <!-- User Actions -->
+        <!-- Actions -->
         <div class="flex items-center space-x-4">
           <button id="cart-toggle" class="relative text-yellow-500 hover:text-yellow-400" aria-label="Open cart">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
@@ -126,15 +125,7 @@
             </svg>
             <span class="cart-count">0</span>
           </button>
-
-          <button id="login-btn" class="btn-secondary hidden sm:inline-flex">Login</button>
-
-          <!-- User Menu -->
-          <div id="user-menu" class="hidden items-center gap-3">
-            <img class="user-avatar h-9 w-9 rounded-full border border-yellow-500" src="" alt="User avatar" />
-            <span class="user-name text-sm text-yellow-500"></span>
-            <button id="logout-btn" class="btn-secondary">Logout</button>
-          </div>
+          <a href="admin.html" class="btn-secondary hidden sm:inline-flex">Manager Login</a>
         </div>
       </div>
     </div>
@@ -387,20 +378,7 @@
     </div>
   </div>
 
-  <!-- 6. Auth Modal -->
-  <div id="auth-modal" class="modal fixed inset-0 z-50">
-    <div class="absolute inset-0 bg-black/60" data-auth-close></div>
-    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-900 border border-gray-700 rounded-xl p-6 w-[95%] max-w-md">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-semibold">Login</h3>
-        <button class="btn-secondary" data-auth-close>Close</button>
-      </div>
-      <p class="text-gray-300 mb-4">Sign in with your Google account:</p>
-      <div id="google-signin" class="flex justify-center mb-4"></div>
-      <div class="text-center text-sm text-gray-400 mb-2">or</div>
-      <button id="demo-login" class="btn-primary w-full">Use Demo Login</button>
-    </div>
-  </div>
+  
 
   <!-- 7. Business Analytics Infographic -->
   <section id="infographic" class="min-h-screen py-20">
@@ -481,9 +459,9 @@
       }, 2500);
     }
 
-    // 8. Data Structure - Sample Products
+    // 8. Data Structure - Sample Products (default seed)
     /** @type {Array<any>} */
-    const products = [
+    const defaultProducts = [
       {
         id: 'st-001', name: 'Golden Noir Suit', category: 'stitched', subcategory: 'branded', brand: 'Aurum Couture',
         price: 18500, currency: 'PKR', images: ['https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=1200&auto=format&fit=crop'],
@@ -686,6 +664,29 @@
       }
     ];
 
+    // Product storage helpers
+    function loadProducts() {
+      try {
+        const raw = localStorage.getItem('products');
+        if (!raw) {
+          localStorage.setItem('products', JSON.stringify(defaultProducts));
+          return JSON.parse(JSON.stringify(defaultProducts));
+        }
+        const list = JSON.parse(raw);
+        if (!Array.isArray(list)) throw new Error('Invalid products');
+        return list;
+      } catch (e) {
+        localStorage.setItem('products', JSON.stringify(defaultProducts));
+        return JSON.parse(JSON.stringify(defaultProducts));
+      }
+    }
+    function saveProducts(list) {
+      localStorage.setItem('products', JSON.stringify(list || []));
+    }
+
+    // Active catalog (loaded from local storage)
+    let products = loadProducts();
+
     // Helpers
     const currencyFormat = (num) => 'PKR ' + Number(num || 0).toLocaleString();
 
@@ -808,82 +809,9 @@
       }
     }
 
-    // 6. Authentication System
-    class AuthManager {
-      constructor() {
-        this.user = JSON.parse(localStorage.getItem('user')) || null;
-        this.initializeGoogleAuth();
-        this.updateAuthUI();
-      }
-      initializeGoogleAuth() {
-        const init = () => {
-          if (!window.google || !google.accounts || !google.accounts.id) return;
-          google.accounts.id.initialize({
-            client_id: 'YOUR_GOOGLE_CLIENT_ID',
-            callback: this.handleCredentialResponse.bind(this),
-          });
-          const target = document.getElementById('google-signin');
-          if (target) {
-            google.accounts.id.renderButton(target, { theme: 'outline', size: 'large' });
-          }
-        };
-        if (document.readyState === 'complete' || document.readyState === 'interactive') {
-          init();
-        } else {
-          window.addEventListener('DOMContentLoaded', init);
-        }
-      }
-      handleCredentialResponse(response) {
-        try {
-          const payload = JSON.parse(atob(response.credential.split('.')[1]));
-          const user = { id: payload.sub, name: payload.name, email: payload.email, picture: payload.picture };
-          this.loginUser(user);
-          closeAuthModal();
-        } catch (e) {
-          showNotification('Login failed', 'error');
-        }
-      }
-      loginUser(user) {
-        this.user = user;
-        localStorage.setItem('user', JSON.stringify(user));
-        this.updateAuthUI();
-        showNotification('Successfully logged in!', 'success');
-      }
-      logoutUser() {
-        this.user = null;
-        localStorage.removeItem('user');
-        this.updateAuthUI();
-        if (confirm('Do you want to clear your cart as well?')) { cart.clearCart(); }
-      }
-      updateAuthUI() {
-        const loginBtn = document.getElementById('login-btn');
-        const userMenu = document.getElementById('user-menu');
-        if (this.user) {
-          if (loginBtn) loginBtn.style.display = 'none';
-          if (userMenu) {
-            userMenu.style.display = 'flex';
-            userMenu.querySelector('.user-name').textContent = this.user.name || '';
-            userMenu.querySelector('.user-avatar').src = this.user.picture || '';
-          }
-        } else {
-          if (loginBtn) loginBtn.style.display = 'inline-flex';
-          if (userMenu) userMenu.style.display = 'none';
-        }
-      }
-      isLoggedIn() { return this.user !== null; }
-      requireAuth(callback) {
-        if (this.isLoggedIn()) { callback(); }
-        else {
-          showNotification('Please log in to continue', 'warning');
-          openAuthModal();
-        }
-      }
-    }
-
-    // Instances
+    // Instances (no customer auth)
     const cart = new ShoppingCart();
     const checkout = new CheckoutManager(cart);
-    const auth = new AuthManager();
 
     // (Wishlist removed)
 
@@ -1035,11 +963,6 @@
     function openCartModal() { cartModal.classList.add('active'); cart.renderCartModal(); }
     function closeCartModal() { cartModal.classList.remove('active'); }
 
-    // Auth Modal Logic
-    const authModal = document.getElementById('auth-modal');
-    function openAuthModal() { authModal.classList.add('active'); }
-    function closeAuthModal() { authModal.classList.remove('active'); }
-
     // Event Delegation
     document.addEventListener('click', (e) => {
       const target = e.target;
@@ -1081,10 +1004,6 @@
       if (target.closest && target.closest('#cart-toggle')) openCartModal();
       if (target.hasAttribute('data-cart-close')) closeCartModal();
 
-      // Auth open/close
-      if (target.id === 'login-btn') openAuthModal();
-      if (target.hasAttribute('data-auth-close')) closeAuthModal();
-
       // Cart item remove
       if (target.hasAttribute('data-remove')) {
         const id = target.getAttribute('data-remove');
@@ -1105,42 +1024,22 @@
     // Clear cart
     document.getElementById('clear-cart').addEventListener('click', () => cart.clearCart());
 
-    // Checkout submit
+    // Checkout submit (no login required)
     document.getElementById('checkout-form').addEventListener('submit', (e) => {
       e.preventDefault();
-      auth.requireAuth(() => {
-        const form = e.target;
-        if (cart.items.length === 0) { showNotification('Your cart is empty', 'warning'); return; }
-        const orderData = {
-          customerInfo: { name: form.name.value, email: form.email.value, address: form.address.value },
-          paymentMethod: form.paymentMethod.value,
-          items: cart.items.map((i) => ({ id: i.id, quantity: i.quantity, price: i.price, category: i.category })),
-        };
-        const order = checkout.processOrder(orderData);
-        showNotification('Order placed: ' + order.id, 'success');
-        cart.clearCart();
-        closeCartModal();
-        renderOrders();
-      });
+      const form = e.target;
+      if (cart.items.length === 0) { showNotification('Your cart is empty', 'warning'); return; }
+      const orderData = {
+        customerInfo: { name: form.name.value, email: form.email.value, address: form.address.value },
+        paymentMethod: form.paymentMethod.value,
+        items: cart.items.map((i) => ({ id: i.id, quantity: i.quantity, price: i.price, category: i.category })),
+      };
+      const order = checkout.processOrder(orderData);
+      showNotification('Order placed: ' + order.id, 'success');
+      cart.clearCart();
+      closeCartModal();
+      renderOrders();
     });
-
-    // Logout
-    document.getElementById('logout-btn').addEventListener('click', () => auth.logoutUser());
-
-    // Demo Login (fallback when Google button isn't available)
-    const demoBtn = document.getElementById('demo-login');
-    if (demoBtn) {
-      demoBtn.addEventListener('click', () => {
-        const demoUser = {
-          id: 'demo-' + Date.now(),
-          name: 'Demo User',
-          email: 'demo@luminara.test',
-          picture: 'https://ui-avatars.com/api/?name=Demo+User&background=FFD700&color=000'
-        };
-        auth.loginUser(demoUser);
-        closeAuthModal();
-      });
-    }
 
     // Sub-nav for stitched
     document.querySelectorAll('#stitched .sub-nav-btn').forEach((btn) => {

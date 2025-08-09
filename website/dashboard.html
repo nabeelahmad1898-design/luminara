@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manager Dashboard | Luminara</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-primary: #1a1a1a;
+      --bg-secondary: #2c2c2c;
+      --gold-primary: #FFD700;
+      --text-primary: #FFFFFF;
+      --text-secondary: #cccccc;
+    }
+    body { background: var(--bg-primary); color: var(--text-primary); font-family: Roboto, system-ui, -apple-system, Segoe UI, Inter, Helvetica, Arial, sans-serif; }
+    .card { background: #111827; border: 1px solid #374151; border-radius: 0.75rem; }
+    .btn-primary { background: #FFD700; color: #000; font-weight: 700; padding: 0.6rem 1rem; border-radius: 0.5rem; }
+    .btn-secondary { border: 1px solid #FFD700; color: #FFD700; font-weight: 700; padding: 0.6rem 1rem; border-radius: 0.5rem; }
+    .btn-danger { border: 1px solid #dc2626; color: #fecaca; font-weight: 700; padding: 0.5rem 0.8rem; border-radius: 0.5rem; }
+    .form-input { background: #1f2937; border: 1px solid #374151; color: #fff; border-radius: 0.5rem; padding: 0.5rem 0.8rem; width: 100%; }
+    .form-input:focus { outline: none; border-color: #FFD700; box-shadow: 0 0 0 3px rgba(255,215,0,.25); }
+    .badge { background: #272e3a; border: 1px solid #374151; border-radius: 9999px; padding: 0.15rem 0.5rem; font-size: 0.75rem; color: #e5e7eb; }
+  </style>
+</head>
+<body>
+  <header class="border-b border-gray-800">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="text-xl font-bold text-yellow-500">Luminara Manager Dashboard</div>
+      <div class="flex items-center gap-2">
+        <a href="index.html" class="btn-secondary">View Store</a>
+        <button id="logout" class="btn-secondary">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-4 space-y-6">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="card p-4">
+        <div class="text-gray-300 text-sm">Total Products</div>
+        <div id="stat-products" class="text-3xl font-bold">0</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-gray-300 text-sm">Orders (Local)</div>
+        <div id="stat-orders" class="text-3xl font-bold">0</div>
+      </div>
+      <div class="card p-4">
+        <div class="text-gray-300 text-sm">Pending Orders</div>
+        <div id="stat-pending" class="text-3xl font-bold">0</div>
+      </div>
+    </section>
+
+    <section class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">Add / Edit Product</h2>
+        <button id="reset-form" class="btn-secondary">Clear Form</button>
+      </div>
+      <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <input class="form-input" id="p-id" placeholder="ID (auto for new)" disabled />
+        <input class="form-input" id="p-name" placeholder="Name" required />
+        <input class="form-input" id="p-brand" placeholder="Brand" required />
+        <input class="form-input" id="p-category" placeholder="Category (stitched | pre-custom | jewelry)" required />
+        <input class="form-input" id="p-subcategory" placeholder="Subcategory (e.g., branded, copy, handwear)" />
+        <input class="form-input" id="p-price" type="number" placeholder="Price (PKR)" required />
+        <input class="form-input" id="p-images" placeholder="Image URLs (comma separated)" />
+        <select class="form-input" id="p-availability">
+          <option value="in-stock">in-stock</option>
+          <option value="pre-order">pre-order</option>
+          <option value="out-of-stock">out-of-stock</option>
+        </select>
+        <input class="form-input" id="p-stock" type="number" placeholder="Stock" />
+        <textarea class="form-input md:col-span-2" id="p-description" placeholder="Description"></textarea>
+        <textarea class="form-input md:col-span-2" id="p-specs" placeholder='Specifications JSON (e.g., {"material":"Wool"})'></textarea>
+        <label class="flex items-center gap-2 text-sm md:col-span-2">
+          <input id="p-featured" type="checkbox" /> Featured
+        </label>
+        <div class="md:col-span-2 flex gap-2">
+          <button class="btn-primary" type="submit">Save Product</button>
+          <button id="delete-product" class="btn-danger" type="button">Delete</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">Products</h2>
+        <input id="search" class="form-input max-w-xs" placeholder="Search by name or brand" />
+      </div>
+      <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+    </section>
+
+    <section class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">Orders (Local)</h2>
+        <button id="clear-orders" class="btn-danger">Clear All</button>
+      </div>
+      <div id="orders" class="space-y-3"></div>
+    </section>
+  </main>
+
+  <script>
+    // Session guard
+    const ADMIN_SESSION_KEY = 'adminSession';
+    function getSession() {
+      try {
+        const obj = JSON.parse(localStorage.getItem(ADMIN_SESSION_KEY) || 'null');
+        if (!obj) return null;
+        if (Date.now() > (obj.expiresAt || 0)) { localStorage.removeItem(ADMIN_SESSION_KEY); return null; }
+        return obj;
+      } catch { return null; }
+    }
+    if (!getSession()) { window.location.href = 'admin.html'; }
+
+    // Storage helpers
+    function loadProducts() {
+      try {
+        const raw = localStorage.getItem('products');
+        const list = raw ? JSON.parse(raw) : [];
+        return Array.isArray(list) ? list : [];
+      } catch { return []; }
+    }
+    function saveProducts(list) {
+      localStorage.setItem('products', JSON.stringify(list || []));
+    }
+    function loadOrders() {
+      try {
+        return JSON.parse(localStorage.getItem('orders') || '[]');
+      } catch { return []; }
+    }
+    function saveOrders(list) { localStorage.setItem('orders', JSON.stringify(list || [])); }
+
+    // UI
+    const currency = (n) => 'PKR ' + Number(n || 0).toLocaleString();
+
+    function renderStats() {
+      const products = loadProducts();
+      const orders = loadOrders();
+      document.getElementById('stat-products').textContent = products.length;
+      document.getElementById('stat-orders').textContent = orders.length;
+      document.getElementById('stat-pending').textContent = orders.filter(o => o.status === 'pending').length;
+    }
+
+    function renderList(filter = '') {
+      const hay = filter.toLowerCase();
+      const list = loadProducts().filter(p => (p.name + ' ' + p.brand).toLowerCase().includes(hay));
+      const wrap = document.getElementById('product-list');
+      wrap.innerHTML = '';
+      if (list.length === 0) {
+        wrap.innerHTML = '<div class="text-gray-400">No products found.</div>';
+        return;
+      }
+      list.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'card p-3';
+        const img = (p.images && p.images[0]) || '';
+        div.innerHTML = `
+          <div class="flex gap-3">
+            <img src="${img}" alt="${p.name}" class="h-16 w-16 object-cover rounded" />
+            <div class="flex-1">
+              <div class="flex items-start justify-between">
+                <div class="font-semibold">${p.name}</div>
+                <span class="badge">${p.category}</span>
+              </div>
+              <div class="text-sm text-gray-300">${p.brand}</div>
+              <div class="text-yellow-500 font-bold">${currency(p.price)}</div>
+              <div class="text-xs text-gray-400">${p.availability} • stock: ${p.stock ?? 0} ${p.featured ? '• featured' : ''}</div>
+            </div>
+          </div>
+          <div class="mt-3 flex gap-2">
+            <button class="btn-secondary" data-edit="${p.id}">Edit</button>
+            <button class="btn-danger" data-del="${p.id}">Delete</button>
+          </div>
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    function fillForm(p) {
+      document.getElementById('p-id').value = p.id || '';
+      document.getElementById('p-name').value = p.name || '';
+      document.getElementById('p-brand').value = p.brand || '';
+      document.getElementById('p-category').value = p.category || '';
+      document.getElementById('p-subcategory').value = p.subcategory || '';
+      document.getElementById('p-price').value = p.price || '';
+      document.getElementById('p-images').value = (p.images || []).join(', ');
+      document.getElementById('p-availability').value = p.availability || 'in-stock';
+      document.getElementById('p-stock').value = p.stock ?? '';
+      document.getElementById('p-description').value = p.description || '';
+      document.getElementById('p-specs').value = p.specifications ? JSON.stringify(p.specifications) : '';
+      document.getElementById('p-featured').checked = !!p.featured;
+    }
+
+    function clearForm() { fillForm({}); }
+
+    function renderOrders() {
+      const wrap = document.getElementById('orders');
+      const orders = loadOrders().slice().reverse();
+      wrap.innerHTML = '';
+      if (orders.length === 0) { wrap.innerHTML = '<div class="text-gray-400">No orders yet.</div>'; return; }
+      orders.forEach(o => {
+        const div = document.createElement('div');
+        div.className = 'card p-3';
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="font-semibold">${o.id}</div>
+              <div class="text-sm text-gray-300">${new Date(o.createdAt).toLocaleString()} • ${o.items.length} items • ${o.paymentMethod.toUpperCase()}</div>
+              <div class="text-xs text-gray-400">${o.customerInfo.name} — ${o.customerInfo.email}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-yellow-500 font-bold">${currency(o.total)}</div>
+              <div class="text-xs text-gray-400">${o.status}</div>
+            </div>
+          </div>
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    // Events
+    document.getElementById('logout').addEventListener('click', () => {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+      window.location.href = 'admin.html';
+    });
+
+    document.getElementById('reset-form').addEventListener('click', clearForm);
+
+    document.getElementById('product-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('p-id').value.trim();
+      const now = new Date().toISOString();
+      const product = {
+        id: id || 'p-' + Date.now(),
+        name: document.getElementById('p-name').value.trim(),
+        brand: document.getElementById('p-brand').value.trim(),
+        category: document.getElementById('p-category').value.trim(),
+        subcategory: document.getElementById('p-subcategory').value.trim(),
+        price: Number(document.getElementById('p-price').value || 0),
+        images: document.getElementById('p-images').value.split(',').map(s => s.trim()).filter(Boolean),
+        availability: document.getElementById('p-availability').value,
+        stock: Number(document.getElementById('p-stock').value || 0),
+        description: document.getElementById('p-description').value,
+        specifications: (()=>{ try { const v = document.getElementById('p-specs').value; return v ? JSON.parse(v) : {}; } catch { return {}; } })(),
+        featured: document.getElementById('p-featured').checked,
+      };
+      let list = loadProducts();
+      const existingIdx = list.findIndex(x => x.id === product.id);
+      if (existingIdx >= 0) {
+        product.createdAt = list[existingIdx].createdAt || now;
+        product.updatedAt = now;
+        list[existingIdx] = product;
+      } else {
+        product.createdAt = now;
+        product.updatedAt = now;
+        list.push(product);
+      }
+      saveProducts(list);
+      alert('Saved');
+      renderStats();
+      renderList(document.getElementById('search').value || '');
+      clearForm();
+    });
+
+    document.getElementById('product-list').addEventListener('click', (e) => {
+      const t = e.target;
+      const idEdit = t.getAttribute('data-edit');
+      const idDel = t.getAttribute('data-del');
+      if (idEdit) {
+        const p = loadProducts().find(x => x.id === idEdit);
+        if (p) fillForm(p);
+      }
+      if (idDel) {
+        if (!confirm('Delete this product?')) return;
+        let list = loadProducts();
+        list = list.filter(x => x.id !== idDel);
+        saveProducts(list);
+        renderStats();
+        renderList(document.getElementById('search').value || '');
+      }
+    });
+
+    document.getElementById('delete-product').addEventListener('click', () => {
+      const id = document.getElementById('p-id').value.trim();
+      if (!id) { alert('No product selected.'); return; }
+      if (!confirm('Delete this product?')) return;
+      let list = loadProducts();
+      list = list.filter(x => x.id !== id);
+      saveProducts(list);
+      alert('Deleted');
+      renderStats();
+      renderList(document.getElementById('search').value || '');
+      clearForm();
+    });
+
+    document.getElementById('search').addEventListener('input', (e) => {
+      renderList(e.target.value || '');
+    });
+
+    document.getElementById('clear-orders').addEventListener('click', () => {
+      if (!confirm('Clear all orders from this device?')) return;
+      saveOrders([]);
+      renderStats();
+      renderOrders();
+    });
+
+    // Initial render
+    renderStats();
+    renderList('');
+    renderOrders();
+  </script>
+</body>
+</html>
+
+
