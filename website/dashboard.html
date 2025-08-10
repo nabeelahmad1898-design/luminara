@@ -65,7 +65,12 @@
         <input class="form-input" id="p-id" placeholder="ID (auto for new)" disabled />
         <input class="form-input" id="p-name" placeholder="Name" required />
         <input class="form-input" id="p-brand" placeholder="Brand" required />
-        <input class="form-input" id="p-category" placeholder="Category (stitched | pre-custom | jewelry)" required />
+        <select class="form-input" id="p-category" required>
+          <option value="">Select Category</option>
+          <option value="stitched">Stitched</option>
+          <option value="pre-custom">Pre-Custom</option>
+          <option value="jewelry">Jewelry</option>
+        </select>
         <input class="form-input" id="p-subcategory" placeholder="Subcategory (e.g., branded, copy, handwear)" />
         <input class="form-input" id="p-price" type="number" placeholder="Price (PKR)" required />
         <input class="form-input" id="p-images" placeholder="Image URLs (comma separated)" />
@@ -395,7 +400,7 @@
         id: id || 'p-' + Date.now(),
         name: document.getElementById('p-name').value.trim(),
         brand: document.getElementById('p-brand').value.trim(),
-        category: document.getElementById('p-category').value.trim(),
+        category: document.getElementById('p-category').value.trim() || 'stitched', // Default to stitched if empty
         subcategory: document.getElementById('p-subcategory').value.trim(),
         price: Number(document.getElementById('p-price').value || 0),
         images: document.getElementById('p-images').value.split(',').map(s => s.trim()).filter(Boolean),
@@ -490,7 +495,13 @@
       const idDel = t.getAttribute('data-del');
       if (idEdit) {
         if (spConfigured) {
-          const { data } = await sp.from('products').select('*').eq('id', idEdit).maybeSingle();
+          // Ensure we're using a numeric ID for Supabase
+          const numericId = parseInt(idEdit);
+          if (isNaN(numericId)) {
+            alert('Invalid product ID for editing');
+            return;
+          }
+          const { data } = await sp.from('products').select('*').eq('id', numericId).maybeSingle();
           if (data) fillForm({
             id: data.id,
             name: data.name,
@@ -513,7 +524,13 @@
       if (idDel) {
         if (!confirm('Delete this product?')) return;
         if (spConfigured) {
-          const { error } = await sp.from('products').delete().eq('id', idDel);
+          // Ensure we're using a numeric ID for Supabase
+          const numericId = parseInt(idDel);
+          if (isNaN(numericId)) {
+            alert('Invalid product ID for deletion');
+            return;
+          }
+          const { error } = await sp.from('products').delete().eq('id', numericId);
           if (error) { alert('Delete failed: ' + error.message); return; }
         } else {
           let list = loadProducts();
