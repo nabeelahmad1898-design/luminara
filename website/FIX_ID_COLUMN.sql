@@ -29,12 +29,11 @@ WHERE table_name = 'products'
 ORDER BY column_name;
 
 -- 4. Test that we can insert a product
-INSERT INTO products (name, brand, category, price, id) 
-VALUES ('Test Product', 'Test Brand', 'Test Category', 99.99, 999999)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO products (name, brand, category, price) 
+VALUES ('Test Product', 'Test Brand', 'Test Category', 99.99);
 
 -- 5. Check if the insert worked
-SELECT id, name, brand, category, price 
+SELECT "ID", name, brand, category, price 
 FROM products 
 WHERE name = 'Test Product' 
 ORDER BY created_at DESC 
