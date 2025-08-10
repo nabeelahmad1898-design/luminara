@@ -419,7 +419,7 @@
           }
           
           const payload = {
-            id: product.id,
+            // Remove id field - let Supabase auto-generate it for new products
             name: product.name,
             brand: product.brand,
             category: product.category,
