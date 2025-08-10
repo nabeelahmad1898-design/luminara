@@ -99,11 +99,19 @@
   </div>
 
   <script>
+    console.log('Admin script loading...');
     // Supabase config
     const SUPABASE_URL = window.SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || '';
     const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || '';
     const spConfigured = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY && !/YOUR_/.test(SUPABASE_ANON_KEY);
     const sp = spConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    console.log('Supabase configuration check:', {
+      url: SUPABASE_URL,
+      keyExists: !!SUPABASE_ANON_KEY,
+      spConfigured: spConfigured,
+      supabaseClient: !!window.supabase,
+      sp: !!sp
+    });
     // Minimal client-side session; for real deployments use a backend.
     const ADMIN_HASH_KEY = 'adminPasswordHash';
     const ADMIN_EMAIL_KEY = 'adminEmail';
@@ -311,8 +319,13 @@
 
     // Supabase auth handlers
     if (spConfigured) {
-      document.getElementById('sp-login-form').addEventListener('submit', async (e) => {
+      console.log('Setting up Supabase login handler...');
+      const loginForm = document.getElementById('sp-login-form');
+      if (loginForm) {
+        console.log('Login form found, adding event listener...');
+        loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        e.stopPropagation();
         console.log('Login attempt started...');
         const email = document.getElementById('sp-email').value.trim();
         const password = document.getElementById('sp-pass').value;
@@ -363,6 +376,9 @@
           alert('Unexpected error: ' + err.message);
         }
       });
+      } else {
+        console.error('Login form not found!');
+      }
 
       document.getElementById('sp-signup-form').addEventListener('submit', async (e) => {
         e.preventDefault();
