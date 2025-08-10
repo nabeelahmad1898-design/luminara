@@ -215,7 +215,21 @@
 
     // Redirect if already logged in
     const existing = getSession();
-    if (existing) { window.location.href = 'dashboard.html'; }
+    if (existing) { 
+      console.log('Existing session found, redirecting to dashboard...');
+      window.location.href = 'dashboard.html'; 
+    }
+    
+    // Check Supabase auth status
+    if (spConfigured) {
+      sp.auth.getUser().then(({ data, error }) => {
+        console.log('Current Supabase auth status:', { data, error });
+        if (data?.user) {
+          console.log('User is already logged in:', data.user.email);
+          console.log('User ID:', data.user.id);
+        }
+      });
+    }
 
     // Decide which auth to show
     if (spConfigured) {
@@ -224,12 +238,12 @@
     } else {
       const hasPassword = !!getAdminHash();
       if (hasPassword) { show('login-panel'); } else { show('setup-panel'); }
+      
+      document.getElementById('switch-to-login').addEventListener('click', () => show('login-panel'));
+      const switchToSetupBtn = document.getElementById('switch-to-setup');
+      if (!hasPassword) { switchToSetupBtn.classList.remove('hidden'); }
+      switchToSetupBtn.addEventListener('click', () => show('setup-panel'));
     }
-
-    document.getElementById('switch-to-login').addEventListener('click', () => show('login-panel'));
-    const switchToSetupBtn = document.getElementById('switch-to-setup');
-    if (!hasPassword) { switchToSetupBtn.classList.remove('hidden'); }
-    switchToSetupBtn.addEventListener('click', () => show('setup-panel'));
 
     // TOTP enrollment state in-memory for setup
     let enrollmentSecret = '';
@@ -299,22 +313,55 @@
     if (spConfigured) {
       document.getElementById('sp-login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('Login attempt started...');
         const email = document.getElementById('sp-email').value.trim();
         const password = document.getElementById('sp-pass').value;
-        const { data, error } = await sp.auth.signInWithPassword({ email, password });
-        if (error) { alert(error.message); return; }
-        // Check role in profiles
-        const { data: u } = await sp.auth.getUser();
-        const uid = u?.user?.id;
-        const { data: prof } = await sp.from('profiles').select('role').eq('user_id', uid).maybeSingle();
-        if (!prof || prof.role !== 'admin') {
-          alert('Your account is not authorized (role != admin).');
-          await sp.auth.signOut();
-          return;
+        console.log('Attempting login with email:', email);
+        
+        try {
+          const { data, error } = await sp.auth.signInWithPassword({ email, password });
+          console.log('Login result:', { data, error });
+          
+          if (error) { 
+            console.error('Login error:', error);
+            alert(error.message); 
+            return; 
+          }
+          
+          console.log('Login successful, checking user role...');
+          
+          // Check role in profiles
+          const { data: u } = await sp.auth.getUser();
+          const uid = u?.user?.id;
+          console.log('User ID:', uid);
+          
+          const { data: prof, error: profError } = await sp.from('profiles').select('role').eq('user_id', uid).maybeSingle();
+          console.log('Profile check result:', { prof, profError });
+          
+          if (profError) {
+            console.error('Profile check error:', profError);
+            alert('Error checking user role: ' + profError.message);
+            return;
+          }
+          
+          if (!prof || prof.role !== 'admin') {
+            console.error('User not authorized. Role:', prof?.role);
+            alert('Your account is not authorized (role != admin).');
+            await sp.auth.signOut();
+            return;
+          }
+          
+          console.log('User authorized as admin, creating session...');
+          
+          // Store a lightweight local session marker for redirect parity
+          createSession();
+          console.log('Session created, redirecting to dashboard...');
+          window.location.href = 'dashboard.html';
+          
+        } catch (err) {
+          console.error('Unexpected error during login:', err);
+          alert('Unexpected error: ' + err.message);
         }
-        // Store a lightweight local session marker for redirect parity
-        createSession();
-        window.location.href = 'dashboard.html';
       });
 
       document.getElementById('sp-signup-form').addEventListener('submit', async (e) => {

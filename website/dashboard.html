@@ -115,6 +115,17 @@
       client: !!sp
     });
     
+    // Debug authentication status
+    if (spConfigured) {
+      sp.auth.getUser().then(({ data, error }) => {
+        console.log('Authentication Status:', { data, error });
+        if (data?.user) {
+          console.log('User ID:', data.user.id);
+          console.log('User Email:', data.user.email);
+        }
+      });
+    }
+    
     // Session guard
     const ADMIN_SESSION_KEY = 'adminSession';
     function getSession() {
@@ -292,6 +303,8 @@
           };
           
           console.log('Attempting to save product to Supabase:', payload);
+          console.log('Supabase client status:', !!sp);
+          console.log('User authentication:', await sp.auth.getUser());
           
           // Try upsert first, fallback to insert if needed
           let { data, error } = await sp.from('products').upsert(payload, { onConflict: 'id' });
