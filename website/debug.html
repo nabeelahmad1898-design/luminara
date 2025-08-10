@@ -395,9 +395,17 @@
                 name: `Debug Test Product ${Date.now()}`,
                 brand: 'Debug Brand',
                 category: 'debug',
+                subcategory: 'debug-test',
                 price: 999,
+                currency: 'PKR',
+                images: ['https://via.placeholder.com/300x300?text=Debug+Product'],
                 description: 'This is a test product created by the debug panel',
-                image_url: 'https://via.placeholder.com/300x300?text=Debug+Product'
+                specifications: { test: true },
+                availability: 'in-stock',
+                stock: 1,
+                featured: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
             };
 
             try {
