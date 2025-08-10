@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supabase Configuration | Luminara</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-primary: #000000;
+      --bg-secondary: #0a0a0a;
+      --gold-primary: #FFD700;
+      --text-primary: #FFFFFF;
+      --text-secondary: #b3b3b3;
+    }
+    body { background: var(--bg-primary); color: var(--text-primary); font-family: Roboto, system-ui, -apple-system, Segoe UI, Inter, Helvetica, Arial, sans-serif; }
+    .card { background: var(--bg-secondary); border: 1px solid #1a1a1a; border-radius: 0.75rem; }
+    .form-input { background: #0f0f0f; border: 1px solid #1a1a1a; color: #fff; border-radius: 0.5rem; padding: 0.75rem 1rem; width: 100%; }
+    .form-input::placeholder { color: #7f7f7f; }
+    .form-input:focus { outline: none; border-color: var(--gold-primary); box-shadow: 0 0 0 3px rgba(255,215,0,.18); }
+    .btn-primary { background: var(--gold-primary); color: #000; font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; }
+    .btn-secondary { border: 1px solid var(--gold-primary); color: var(--gold-primary); font-weight: 700; padding: 0.75rem 1rem; border-radius: 0.5rem; }
+    .btn-secondary:hover { background: #FFD700; color: #000; }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen grid place-items-center p-4">
+    <div class="card w-full max-w-2xl p-6">
+      <div class="mb-6 text-center">
+        <h1 class="text-2xl font-bold text-yellow-500">Supabase Configuration</h1>
+        <p class="text-sm text-gray-300 mt-1">Configure your Supabase connection for product management</p>
+      </div>
+
+      <div class="space-y-6">
+        <!-- Current Configuration -->
+        <div class="card p-4">
+          <h2 class="text-lg font-semibold mb-3">Current Configuration</h2>
+          <div class="space-y-2 text-sm">
+            <div>URL: <span id="current-url" class="text-yellow-500">Not configured</span></div>
+            <div>API Key: <span id="current-key" class="text-yellow-500">Not configured</span></div>
+            <div>Status: <span id="current-status" class="text-red-400">Not connected</span></div>
+          </div>
+        </div>
+
+        <!-- Configuration Form -->
+        <form id="config-form" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">Supabase Project URL</label>
+            <input class="form-input" type="url" id="supabase-url" placeholder="https://your-project.supabase.co" required />
+            <p class="text-xs text-gray-400 mt-1">Find this in your Supabase project settings</p>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium mb-2">Supabase Anon Key</label>
+            <input class="form-input" type="password" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required />
+            <p class="text-xs text-gray-400 mt-1">Find this in your Supabase project API settings</p>
+          </div>
+          
+          <button class="btn-primary w-full" type="submit">Save Configuration</button>
+        </form>
+
+        <!-- Test Connection -->
+        <div class="card p-4">
+          <h2 class="text-lg font-semibold mb-3">Test Connection</h2>
+          <button id="test-connection" class="btn-secondary w-full">Test Supabase Connection</button>
+          <div id="test-result" class="mt-3 text-sm"></div>
+        </div>
+
+        <!-- Database Schema -->
+        <div class="card p-4">
+          <h2 class="text-lg font-semibold mb-3">Required Database Schema</h2>
+          <p class="text-sm text-gray-300 mb-3">Make sure your Supabase database has the following table structure:</p>
+          
+          <div class="bg-gray-900 p-4 rounded text-sm font-mono overflow-x-auto">
+            <pre class="text-green-400">CREATE TABLE products (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  brand TEXT NOT NULL,
+  category TEXT NOT NULL,
+  subcategory TEXT,
+  price DECIMAL(10,2) NOT NULL,
+  currency TEXT DEFAULT 'PKR',
+  images TEXT[],
+  description TEXT,
+  specifications JSONB,
+  availability TEXT DEFAULT 'in-stock',
+  stock INTEGER DEFAULT 0,
+  featured BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+
+-- Create policy for authenticated users
+CREATE POLICY "Users can manage products" ON products
+  FOR ALL USING (auth.role() = 'authenticated');
+
+-- Create profiles table for admin role
+CREATE TABLE profiles (
+  user_id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  role TEXT DEFAULT 'user',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable RLS on profiles
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- Policy for profiles
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = user_id);</pre>
+          </div>
+          
+          <div class="mt-3 text-xs text-gray-400">
+            <p>• Run this SQL in your Supabase SQL Editor</p>
+            <p>• Set your user's role to 'admin' in the profiles table</p>
+            <p>• Make sure RLS policies allow your user to access the products table</p>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex gap-3">
+          <a href="admin.html" class="btn-secondary flex-1 text-center">Back to Login</a>
+          <a href="dashboard.html" class="btn-primary flex-1 text-center">Go to Dashboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Load current configuration
+    function loadCurrentConfig() {
+      const url = localStorage.getItem('SUPABASE_URL') || '';
+      const key = localStorage.getItem('SUPABASE_ANON_KEY') || '';
+      
+      document.getElementById('current-url').textContent = url || 'Not configured';
+      document.getElementById('current-key').textContent = key ? 'Configured' : 'Not configured';
+      
+      const isConfigured = url && key && !/YOUR_/.test(key);
+      document.getElementById('current-status').textContent = isConfigured ? 'Configured' : 'Not connected';
+      document.getElementById('current-status').className = isConfigured ? 'text-green-400' : 'text-red-400';
+      
+      // Pre-fill form
+      document.getElementById('supabase-url').value = url;
+      document.getElementById('supabase-key').value = key;
+    }
+
+    // Save configuration
+    document.getElementById('config-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const url = document.getElementById('supabase-url').value.trim();
+      const key = document.getElementById('supabase-key').value.trim();
+      
+      if (!url || !key) {
+        alert('Please fill in both URL and API key');
+        return;
+      }
+      
+      localStorage.setItem('SUPABASE_URL', url);
+      localStorage.setItem('SUPABASE_ANON_KEY', key);
+      
+      loadCurrentConfig();
+      alert('Configuration saved! You can now test the connection.');
+    });
+
+    // Test connection
+    document.getElementById('test-connection').addEventListener('click', async () => {
+      const url = localStorage.getItem('SUPABASE_URL');
+      const key = localStorage.getItem('SUPABASE_ANON_KEY');
+      
+      if (!url || !key) {
+        document.getElementById('test-result').innerHTML = '<span class="text-red-400">Please configure Supabase first</span>';
+        return;
+      }
+      
+      document.getElementById('test-result').innerHTML = '<span class="text-yellow-400">Testing connection...</span>';
+      
+      try {
+        // Load Supabase client
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';
+        script.onload = async () => {
+          try {
+            const supabase = window.supabase.createClient(url, key);
+            
+            // Test basic connection
+            const { data, error } = await supabase.from('products').select('count').limit(1);
+            
+            if (error) {
+              document.getElementById('test-result').innerHTML = `
+                <span class="text-red-400">Connection failed: ${error.message}</span>
+                <div class="text-xs text-gray-400 mt-1">
+                  Make sure your table schema is correct and RLS policies are set up.
+                </div>
+              `;
+            } else {
+              document.getElementById('test-result').innerHTML = `
+                <span class="text-green-400">✓ Connection successful!</span>
+                <div class="text-xs text-gray-400 mt-1">
+                  Supabase is properly configured and accessible.
+                </div>
+              `;
+            }
+          } catch (err) {
+            document.getElementById('test-result').innerHTML = `
+              <span class="text-red-400">Error: ${err.message}</span>
+            `;
+          }
+        };
+        script.onerror = () => {
+          document.getElementById('test-result').innerHTML = '<span class="text-red-400">Failed to load Supabase client</span>';
+        };
+        document.head.appendChild(script);
+        
+      } catch (err) {
+        document.getElementById('test-result').innerHTML = `<span class="text-red-400">Error: ${err.message}</span>`;
+      }
+    });
+
+    // Load configuration on page load
+    loadCurrentConfig();
+  </script>
+</body>
+</html>

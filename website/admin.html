@@ -7,7 +7,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase JS SDK v2 (UMD build exposes window.supabase) -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <style>
     :root {
       --bg-primary: #000000;
@@ -91,7 +91,8 @@
         <button id="back-to-login" class="btn-secondary w-full mt-3 hidden">Back to login</button>
       </div>
 
-      <div class="text-center mt-6">
+      <div class="text-center mt-6 space-y-2">
+        <a href="supabase-config.html" class="text-sm text-yellow-500 hover:text-yellow-400 block">⚙️ Configure Supabase</a>
         <a href="index.html" class="text-sm text-gray-400 hover:text-yellow-500">← Back to Storefront</a>
       </div>
     </div>

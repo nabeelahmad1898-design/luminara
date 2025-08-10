@@ -33,7 +33,7 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Supabase JS SDK v2 (UMD build exposes window.supabase) -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" defer></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
@@ -464,7 +464,8 @@
     // Supabase config (replace with your project values or set via localStorage SUPABASE_URL / SUPABASE_ANON_KEY)
     const SUPABASE_URL = window.SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || 'https://YOUR_PROJECT_REF.supabase.co';
     const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || 'YOUR_ANON_KEY';
-    const isSupabaseConfigured = () => SUPABASE_URL.startsWith('http') && !/YOUR_/.test(SUPABASE_ANON_KEY);
+    const supabaseAvailable = typeof window.supabase === 'object' && typeof window.supabase.createClient === 'function';
+    const isSupabaseConfigured = () => supabaseAvailable && SUPABASE_URL.startsWith('http') && !/YOUR_/.test(SUPABASE_ANON_KEY);
     const supabase = isSupabaseConfigured() ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     // Utility: Toast notifications
     function showNotification(message, type = 'success') {
