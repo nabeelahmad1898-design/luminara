@@ -399,7 +399,6 @@
             }
 
             const testProduct = {
-                id: `debug-${Date.now()}`,
                 name: `Debug Test Product ${Date.now()}`,
                 brand: 'Debug Brand',
                 category: 'debug',
@@ -421,8 +420,9 @@
                     log(`Error code: ${error.code}`, 'error');
                     log(`Error details: ${JSON.stringify(error)}`, 'error');
                 } else {
-                    updateStatus('db-status', `✅ WRITE successful: Product created with ID ${data[0].id}`, 'success');
-                    log(`Write successful: Product created with ID ${data[0].id}`, 'success');
+                    const productId = data[0].id || data[0].ID || 'unknown';
+                    updateStatus('db-status', `✅ WRITE successful: Product created with ID ${productId}`, 'success');
+                    log(`Write successful: Product created with ID ${productId}`, 'success');
                     log(`Created product: ${JSON.stringify(data[0], null, 2)}`, 'info');
                 }
                 
@@ -444,7 +444,7 @@
                 // First, find a test product to delete
                 const { data: testProducts, error: findError } = await supabase
                     .from('products')
-                    .select('id, name')
+                    .select('*')
                     .like('name', 'Debug Test Product%')
                     .limit(1);
 
@@ -461,12 +461,13 @@
                 }
 
                 const productToDelete = testProducts[0];
-                log(`Attempting to delete product: ${productToDelete.name} (ID: ${productToDelete.id})`, 'info');
+                const productId = productToDelete.id || productToDelete.ID;
+                log(`Attempting to delete product: ${productToDelete.name} (ID: ${productId})`, 'info');
 
                 const { error } = await supabase
                     .from('products')
                     .delete()
-                    .eq('id', productToDelete.id);
+                    .eq('id', productId);
 
                 if (error) {
                     updateStatus('db-status', `❌ DELETE failed: ${error.message}`, 'error');
