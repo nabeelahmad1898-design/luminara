@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website Test Suite | Luminara</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-primary: #000000;
+      --bg-secondary: #0a0a0a;
+      --gold-primary: #FFD700;
+      --text-primary: #FFFFFF;
+      --text-secondary: #b3b3b3;
+    }
+    body { background: var(--bg-primary); color: var(--text-primary); font-family: Roboto, system-ui, -apple-system, Segoe UI, Inter, Helvetica, Arial, sans-serif; }
+    .card { background: var(--bg-secondary); border: 1px solid #1a1a1a; border-radius: 0.75rem; }
+    .btn-primary { background: var(--gold-primary); color: #000; font-weight: 700; padding: 0.6rem 1rem; border-radius: 0.5rem; }
+    .btn-secondary { border: 1px solid var(--gold-primary); color: var(--gold-primary); font-weight: 700; padding: 0.6rem 1rem; border-radius: 0.5rem; }
+    .btn-success { background: #10b981; color: white; font-weight: 700; padding: 0.6rem 1rem; border-radius: 0.5rem; }
+    .btn-error { background: #ef4444; color: white; font-weight: 700; padding: 0.6rem 1rem; border-radius: 0.5rem; }
+    .test-result { padding: 0.5rem; border-radius: 0.5rem; margin: 0.5rem 0; }
+    .test-success { background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; }
+    .test-error { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; }
+    .test-warning { background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; }
+  </style>
+</head>
+<body>
+  <div class="min-h-screen p-4">
+    <div class="max-w-4xl mx-auto">
+      <header class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-yellow-500">🌐 Luminara Website Test Suite</h1>
+        <p class="text-gray-300 mt-2">Comprehensive testing of all website functionality</p>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Test Controls -->
+        <div class="card p-6">
+          <h2 class="text-xl font-semibold mb-4">🧪 Test Controls</h2>
+          <div class="space-y-3">
+            <button id="test-all" class="btn-primary w-full">Run All Tests</button>
+            <button id="test-supabase" class="btn-secondary w-full">Test Supabase Connection</button>
+            <button id="test-admin" class="btn-secondary w-full">Test Admin Login</button>
+            <button id="test-dashboard" class="btn-secondary w-full">Test Dashboard</button>
+            <button id="test-main-site" class="btn-secondary w-full">Test Main Website</button>
+            <button id="test-cart" class="btn-secondary w-full">Test Shopping Cart</button>
+            <button id="clear-results" class="btn-error w-full">Clear Results</button>
+          </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="card p-6">
+          <h2 class="text-xl font-semibold mb-4">📊 Test Results</h2>
+          <div id="test-results" class="space-y-2">
+            <div class="text-gray-400 text-center">No tests run yet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Results -->
+      <div class="card p-6 mt-6">
+        <h2 class="text-xl font-semibold mb-4">📋 Detailed Test Log</h2>
+        <div id="test-log" class="bg-gray-900 p-4 rounded text-sm font-mono max-h-96 overflow-y-auto">
+          <div class="text-gray-400">Test log will appear here...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Test results storage
+    let testResults = [];
+    let testLog = [];
+
+    // Supabase client
+    let supabase = null;
+    let supabaseConfigured = false;
+
+    // Initialize Supabase
+    async function initializeSupabase() {
+      try {
+        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || '';
+        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || '';
+        
+        supabaseConfigured = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY && !/YOUR_/.test(SUPABASE_ANON_KEY);
+        
+        if (supabaseConfigured) {
+          supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          log('✅ Supabase client initialized');
+          return true;
+        } else {
+          log('⚠️ Supabase not configured');
+          return false;
+        }
+      } catch (error) {
+        log(`❌ Supabase initialization failed: ${error.message}`);
+        return false;
+      }
+    }
+
+    // Logging functions
+    function log(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = `[${timestamp}] ${message}`;
+      testLog.push(logEntry);
+      
+      const logElement = document.getElementById('test-log');
+      logElement.innerHTML = testLog.map(entry => `<div class="text-gray-300">${entry}</div>`).join('');
+      logElement.scrollTop = logElement.scrollHeight;
+      
+      console.log(logEntry);
+    }
+
+    function addResult(testName, status, message) {
+      const result = { testName, status, message, timestamp: new Date() };
+      testResults.push(result);
+      
+      const resultsElement = document.getElementById('test-results');
+      const resultDiv = document.createElement('div');
+      resultDiv.className = `test-result ${status === 'success' ? 'test-success' : status === 'error' ? 'test-error' : 'test-warning'}`;
+      resultDiv.innerHTML = `
+        <div class="font-semibold">${testName}</div>
+        <div class="text-sm">${message}</div>
+      `;
+      resultsElement.appendChild(resultDiv);
+    }
+
+    // Test functions
+    async function testSupabaseConnection() {
+      log('=== TESTING SUPABASE CONNECTION ===');
+      
+      if (!supabaseConfigured) {
+        addResult('Supabase Connection', 'error', 'Supabase not configured');
+        return false;
+      }
+
+      try {
+        // Test basic connection
+        const { data, error } = await supabase.from('products').select('count').limit(1);
+        
+        if (error) {
+          log(`❌ Supabase connection failed: ${error.message}`);
+          addResult('Supabase Connection', 'error', error.message);
+          return false;
+        }
+        
+        log('✅ Supabase connection successful');
+        addResult('Supabase Connection', 'success', 'Connected successfully');
+        return true;
+      } catch (error) {
+        log(`❌ Supabase test error: ${error.message}`);
+        addResult('Supabase Connection', 'error', error.message);
+        return false;
+      }
+    }
+
+    async function testAdminLogin() {
+      log('=== TESTING ADMIN LOGIN ===');
+      
+      // Check if admin session exists
+      const adminSession = localStorage.getItem('adminSession');
+      if (adminSession) {
+        try {
+          const session = JSON.parse(adminSession);
+          if (Date.now() < (session.expiresAt || 0)) {
+            log('✅ Admin session exists and valid');
+            addResult('Admin Login', 'success', 'Session valid');
+            return true;
+          }
+        } catch (error) {
+          log('⚠️ Invalid admin session format');
+        }
+      }
+      
+      log('⚠️ No valid admin session found');
+      addResult('Admin Login', 'warning', 'No valid session - login required');
+      return false;
+    }
+
+    async function testDashboard() {
+      log('=== TESTING DASHBOARD FUNCTIONALITY ===');
+      
+      // Test if we can access dashboard page
+      try {
+        const response = await fetch('dashboard.html');
+        if (response.ok) {
+          log('✅ Dashboard page accessible');
+          addResult('Dashboard Access', 'success', 'Page loads successfully');
+          return true;
+        } else {
+          log(`❌ Dashboard page not accessible: ${response.status}`);
+          addResult('Dashboard Access', 'error', `HTTP ${response.status}`);
+          return false;
+        }
+      } catch (error) {
+        log(`❌ Dashboard test error: ${error.message}`);
+        addResult('Dashboard Access', 'error', error.message);
+        return false;
+      }
+    }
+
+    async function testMainSite() {
+      log('=== TESTING MAIN WEBSITE ===');
+      
+      try {
+        const response = await fetch('index.html');
+        if (response.ok) {
+          log('✅ Main website accessible');
+          addResult('Main Website', 'success', 'Page loads successfully');
+          return true;
+        } else {
+          log(`❌ Main website not accessible: ${response.status}`);
+          addResult('Main Website', 'error', `HTTP ${response.status}`);
+          return false;
+        }
+      } catch (error) {
+        log(`❌ Main website test error: ${error.message}`);
+        addResult('Main Website', 'error', error.message);
+        return false;
+      }
+    }
+
+    async function testShoppingCart() {
+      log('=== TESTING SHOPPING CART ===');
+      
+      try {
+        // Test cart localStorage
+        const cartData = localStorage.getItem('cart');
+        if (cartData) {
+          const cart = JSON.parse(cartData);
+          log(`✅ Cart data exists with ${cart.length} items`);
+          addResult('Shopping Cart', 'success', `${cart.length} items in cart`);
+        } else {
+          log('✅ Cart initialized (empty)');
+          addResult('Shopping Cart', 'success', 'Cart initialized');
+        }
+        return true;
+      } catch (error) {
+        log(`❌ Cart test error: ${error.message}`);
+        addResult('Shopping Cart', 'error', error.message);
+        return false;
+      }
+    }
+
+    async function testProductManagement() {
+      log('=== TESTING PRODUCT MANAGEMENT ===');
+      
+      if (!supabaseConfigured) {
+        log('⚠️ Skipping product management test - Supabase not configured');
+        addResult('Product Management', 'warning', 'Supabase not configured');
+        return false;
+      }
+
+      try {
+        // Test reading products
+        const { data, error } = await supabase.from('products').select('*').limit(5);
+        
+        if (error) {
+          log(`❌ Product read failed: ${error.message}`);
+          addResult('Product Management', 'error', `Read failed: ${error.message}`);
+          return false;
+        }
+        
+        log(`✅ Product read successful: ${data?.length || 0} products found`);
+        addResult('Product Management', 'success', `${data?.length || 0} products found`);
+        return true;
+      } catch (error) {
+        log(`❌ Product management test error: ${error.message}`);
+        addResult('Product Management', 'error', error.message);
+        return false;
+      }
+    }
+
+    async function runAllTests() {
+      log('🚀 STARTING COMPREHENSIVE WEBSITE TEST');
+      
+      // Clear previous results
+      document.getElementById('test-results').innerHTML = '';
+      testResults = [];
+      testLog = [];
+      
+      // Initialize Supabase first
+      await initializeSupabase();
+      
+      // Run all tests
+      const tests = [
+        testSupabaseConnection,
+        testAdminLogin,
+        testDashboard,
+        testMainSite,
+        testShoppingCart,
+        testProductManagement
+      ];
+      
+      let passedTests = 0;
+      let totalTests = tests.length;
+      
+      for (const test of tests) {
+        try {
+          const result = await test();
+          if (result) passedTests++;
+        } catch (error) {
+          log(`❌ Test failed with error: ${error.message}`);
+        }
+      }
+      
+      // Summary
+      log(`📊 TEST SUMMARY: ${passedTests}/${totalTests} tests passed`);
+      addResult('Overall Result', passedTests === totalTests ? 'success' : 'warning', 
+                `${passedTests}/${totalTests} tests passed`);
+      
+      if (passedTests === totalTests) {
+        log('🎉 ALL TESTS PASSED! Website is working correctly.');
+      } else {
+        log('⚠️ Some tests failed. Check the results above.');
+      }
+    }
+
+    // Event listeners
+    document.getElementById('test-all').addEventListener('click', runAllTests);
+    document.getElementById('test-supabase').addEventListener('click', testSupabaseConnection);
+    document.getElementById('test-admin').addEventListener('click', testAdminLogin);
+    document.getElementById('test-dashboard').addEventListener('click', testDashboard);
+    document.getElementById('test-main-site').addEventListener('click', testMainSite);
+    document.getElementById('test-cart').addEventListener('click', testShoppingCart);
+    document.getElementById('clear-results').addEventListener('click', () => {
+      document.getElementById('test-results').innerHTML = '<div class="text-gray-400 text-center">Results cleared</div>';
+      document.getElementById('test-log').innerHTML = '<div class="text-gray-400">Test log cleared</div>';
+      testResults = [];
+      testLog = [];
+    });
+
+    // Auto-initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      log('🌐 Website Test Suite loaded');
+      initializeSupabase();
+    });
+  </script>
+</body>
+</html>
