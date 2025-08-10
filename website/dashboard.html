@@ -459,7 +459,7 @@
       const idDel = t.getAttribute('data-del');
       if (idEdit) {
         if (spConfigured) {
-          const { data } = await sp.from('products').select('*').eq('id', idEdit).maybeSingle();
+          const { data } = await sp.from('products').select('*').eq('ID', idEdit).maybeSingle();
           if (data) fillForm({
             id: data.id,
             name: data.name,
@@ -482,7 +482,7 @@
       if (idDel) {
         if (!confirm('Delete this product?')) return;
         if (spConfigured) {
-          const { error } = await sp.from('products').delete().eq('id', idDel);
+          const { error } = await sp.from('products').delete().eq('ID', idDel);
           if (error) { alert('Delete failed: ' + error.message); return; }
         } else {
           let list = loadProducts();

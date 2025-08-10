@@ -494,7 +494,7 @@
                 const { error } = await supabase
                     .from('products')
                     .delete()
-                    .eq('id', productId);
+                    .eq('ID', productId);
 
                 if (error) {
                     updateStatus('db-status', `❌ DELETE failed: ${error.message}`, 'error');
