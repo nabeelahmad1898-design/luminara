@@ -121,6 +121,17 @@
     // Check if we're on the right page
     console.log('Dashboard page loaded, checking authentication...');
     
+    // Check if logout button exists
+    const logoutBtn = document.getElementById('logout');
+    if (logoutBtn) {
+      console.log('Logout button found');
+      logoutBtn.addEventListener('click', () => {
+        console.log('Logout button clicked (test)');
+      });
+    } else {
+      console.error('Logout button not found!');
+    }
+    
     // Debug authentication status
     if (spConfigured) {
       sp.auth.getUser().then(({ data, error }) => {
@@ -252,9 +263,30 @@
 
     // Events
     document.getElementById('logout').addEventListener('click', async () => {
-      localStorage.removeItem(ADMIN_SESSION_KEY);
-      try { if (sp) await sp.auth.signOut(); } catch {}
-      window.location.href = 'admin.html';
+      console.log('Logout button clicked');
+      try {
+        // Clear local session
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        console.log('Local session cleared');
+        
+        // Sign out from Supabase
+        if (sp) {
+          const { error } = await sp.auth.signOut();
+          if (error) {
+            console.error('Supabase signout error:', error);
+          } else {
+            console.log('Supabase signout successful');
+          }
+        }
+        
+        // Redirect to admin page
+        console.log('Redirecting to admin page...');
+        window.location.href = 'admin.html';
+      } catch (err) {
+        console.error('Logout error:', err);
+        // Force redirect even if there's an error
+        window.location.href = 'admin.html';
+      }
     });
 
     document.getElementById('reset-form').addEventListener('click', clearForm);
