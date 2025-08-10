@@ -362,10 +362,13 @@
             }
 
             try {
+                // First, let's check what columns exist by trying to select specific columns
+                log('Checking database schema...', 'info');
+                
                 const { data, error } = await supabase
                     .from('products')
                     .select('*')
-                    .limit(5);
+                    .limit(1);
 
                 if (error) {
                     updateStatus('db-status', `❌ READ failed: ${error.message}`, 'error');
@@ -377,6 +380,7 @@
                     log(`Read successful: Found ${data.length} products`, 'success');
                     if (data.length > 0) {
                         log(`Sample product: ${JSON.stringify(data[0], null, 2)}`, 'info');
+                        log(`Available columns: ${Object.keys(data[0]).join(', ')}`, 'info');
                     }
                 }
                 
@@ -398,17 +402,7 @@
                 name: `Debug Test Product ${Date.now()}`,
                 brand: 'Debug Brand',
                 category: 'debug',
-                subcategory: 'debug-test',
-                price: 999,
-                currency: 'PKR',
-                images: ['https://via.placeholder.com/300x300?text=Debug+Product'],
-                description: 'This is a test product created by the debug panel',
-                specifications: { test: true },
-                availability: 'in-stock',
-                stock: 1,
-                featured: false,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+                price: 999
             };
             
             log('Test product data:', 'info');
@@ -449,7 +443,7 @@
                 // First, find a test product to delete
                 const { data: testProducts, error: findError } = await supabase
                     .from('products')
-                    .select('id, name')
+                    .select('name')
                     .like('name', 'Debug Test Product%')
                     .limit(1);
 
@@ -466,12 +460,12 @@
                 }
 
                 const productToDelete = testProducts[0];
-                log(`Attempting to delete product: ${productToDelete.name} (ID: ${productToDelete.id})`, 'info');
+                log(`Attempting to delete product: ${productToDelete.name}`, 'info');
 
                 const { error } = await supabase
                     .from('products')
                     .delete()
-                    .eq('id', productToDelete.id);
+                    .eq('name', productToDelete.name);
 
                 if (error) {
                     updateStatus('db-status', `❌ DELETE failed: ${error.message}`, 'error');
