@@ -265,11 +265,7 @@
     document.getElementById('logout').addEventListener('click', async () => {
       console.log('Logout button clicked');
       try {
-        // Clear local session
-        localStorage.removeItem(ADMIN_SESSION_KEY);
-        console.log('Local session cleared');
-        
-        // Sign out from Supabase
+        // Sign out from Supabase first
         if (sp) {
           const { error } = await sp.auth.signOut();
           if (error) {
@@ -278,6 +274,14 @@
             console.log('Supabase signout successful');
           }
         }
+        
+        // Clear local session
+        localStorage.removeItem(ADMIN_SESSION_KEY);
+        console.log('Local session cleared');
+        
+        // Clear any other auth-related storage
+        localStorage.removeItem('supabase.auth.token');
+        sessionStorage.clear();
         
         // Redirect to admin page
         console.log('Redirecting to admin page...');
@@ -394,24 +398,20 @@
           console.log('Supabase client status:', !!sp);
           console.log('User authentication:', await sp.auth.getUser());
           
-          // Try upsert first, fallback to insert if needed
-          let { data, error } = await sp.from('products').upsert(payload, { onConflict: 'id' });
+          // Try insert first (simpler for new products)
+          console.log('Attempting to insert product into Supabase...');
+          let { data, error } = await sp.from('products').insert([payload]).select();
           
           if (error) {
-            console.error('Upsert failed, trying insert:', error);
-            // If upsert fails, try insert (for new products)
-            if (!id) {
-              const { data: insertData, error: insertError } = await sp.from('products').insert([payload]);
-              if (insertError) {
-                console.error('Insert also failed:', insertError);
-                alert('Save failed: ' + insertError.message + '\n\nPlease check your Supabase table schema and permissions.');
-                return;
-              }
-              data = insertData;
-            } else {
-              alert('Save failed: ' + error.message + '\n\nPlease check your Supabase table schema and permissions.');
-              return;
-            }
+            console.error('Supabase Insert Error:', error);
+            console.error('Error details:', {
+              message: error.message,
+              details: error.details,
+              hint: error.hint,
+              code: error.code
+            });
+            alert(`Failed to add product: ${error.message}\n\nThis is likely a Row Level Security (RLS) policy issue. Please check your Supabase policies.`);
+            return;
           }
           
           console.log('Product saved successfully:', data);
