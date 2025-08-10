@@ -110,7 +110,7 @@
   </main>
 
   <script>
-    // Supabase client - Initialize properly
+    // Supabase client - Initialize properly to avoid multiple instances
     let sp = null;
     let spConfigured = false;
     
@@ -122,8 +122,11 @@
         spConfigured = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY && !/YOUR_/.test(SUPABASE_ANON_KEY);
         
         if (spConfigured) {
-          sp = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-          console.log('✅ Supabase client initialized successfully');
+          // Only create client if not already created
+          if (!sp) {
+            sp = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('✅ Supabase client initialized for dashboard');
+          }
           
           // Test the connection
           const { data, error } = await sp.auth.getUser();
