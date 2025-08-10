@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Debug Panel</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .debug-panel {
+            border: 3px solid #ff4444;
+            padding: 20px;
+            margin: 20px 0;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        .test-section {
+            border: 2px solid #444;
+            padding: 15px;
+            margin: 15px 0;
+            background: #333;
+            border-radius: 5px;
+        }
+        .status {
+            font-weight: bold;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success { background: #2d5a2d; color: #90ee90; }
+        .status.error { background: #5a2d2d; color: #ff6b6b; }
+        .status.warning { background: #5a4a2d; color: #ffd700; }
+        .status.info { background: #2d4a5a; color: #87ceeb; }
+        button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover { background: #005a9e; }
+        button:disabled { background: #555; cursor: not-allowed; }
+        .config-display {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        .log-area {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .step-number {
+            background: #007acc;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-panel">
+        <h1>🔧 SUPABASE DEBUG PANEL</h1>
+        <p>This panel will test every aspect of your Supabase connection step by step.</p>
+        
+        <div class="test-section">
+            <h3><span class="step-number">1</span>Environment Check</h3>
+            <div id="env-status" class="status info">Checking environment...</div>
+            <div class="config-display" id="config-display"></div>
+            <button onclick="checkEnvironment()">Check Environment</button>
+        </div>
+
+        <div class="test-section">
+            <h3><span class="step-number">2</span>Supabase Client Test</h3>
+            <div id="client-status" class="status info">Waiting to test client...</div>
+            <button onclick="testSupabaseClient()">Test Supabase Client</button>
+        </div>
+
+        <div class="test-section">
+            <h3><span class="step-number">3</span>Authentication Test</h3>
+            <div id="auth-status" class="status info">Waiting to test authentication...</div>
+            <div id="user-info"></div>
+            <button onclick="testAuthentication()">Test Authentication</button>
+            <button onclick="testLogin()">Test Login</button>
+            <button onclick="testLogout()">Test Logout</button>
+        </div>
+
+        <div class="test-section">
+            <h3><span class="step-number">4</span>Database Access Test</h3>
+            <div id="db-status" class="status info">Waiting to test database...</div>
+            <button onclick="testDatabaseRead()">Test READ</button>
+            <button onclick="testDatabaseWrite()">Test WRITE</button>
+            <button onclick="testDatabaseDelete()">Test DELETE</button>
+        </div>
+
+        <div class="test-section">
+            <h3><span class="step-number">5</span>RLS Policy Test</h3>
+            <div id="rls-status" class="status info">Waiting to test RLS...</div>
+            <button onclick="testRLSPolicies()">Test RLS Policies</button>
+        </div>
+
+        <div class="test-section">
+            <h3><span class="step-number">6</span>Complete Integration Test</h3>
+            <div id="integration-status" class="status info">Waiting to test integration...</div>
+            <button onclick="runCompleteTest()">Run Complete Test</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Debug Log</h3>
+            <div class="log-area" id="debug-log"></div>
+            <button onclick="clearLog()">Clear Log</button>
+            <button onclick="exportLog()">Export Log</button>
+        </div>
+    </div>
+
+    <script>
+        let supabase = null;
+        let currentUser = null;
+
+        // Logging function
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logArea = document.getElementById('debug-log');
+            const logEntry = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            logArea.innerHTML += logEntry + '\n';
+            logArea.scrollTop = logArea.scrollHeight;
+            console.log(logEntry);
+        }
+
+        function clearLog() {
+            document.getElementById('debug-log').innerHTML = '';
+        }
+
+        function exportLog() {
+            const logContent = document.getElementById('debug-log').innerText;
+            const blob = new Blob([logContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'supabase-debug-log.txt';
+            a.click();
+        }
+
+        function updateStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+            log(message, type);
+        }
+
+        // Step 1: Environment Check
+        function checkEnvironment() {
+            log('=== ENVIRONMENT CHECK STARTED ===');
+            
+            const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || '';
+            const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || '';
+            
+            const configDisplay = document.getElementById('config-display');
+            configDisplay.innerHTML = `
+                SUPABASE_URL: ${SUPABASE_URL ? '✅ Set' : '❌ Missing'}<br>
+                SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}<br>
+                URL Length: ${SUPABASE_URL.length}<br>
+                Key Length: ${SUPABASE_ANON_KEY.length}<br>
+                URL Valid: ${SUPABASE_URL.startsWith('https://') ? '✅' : '❌'}<br>
+                Key Valid: ${SUPABASE_ANON_KEY.length > 50 ? '✅' : '❌'}
+            `;
+
+            if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+                updateStatus('env-status', '❌ CRITICAL: Missing Supabase configuration', 'error');
+                log('Missing Supabase URL or Anon Key', 'error');
+                return false;
+            }
+
+            if (!SUPABASE_URL.startsWith('https://')) {
+                updateStatus('env-status', '❌ Invalid Supabase URL format', 'error');
+                log('Supabase URL must start with https://', 'error');
+                return false;
+            }
+
+            if (SUPABASE_ANON_KEY.length < 50) {
+                updateStatus('env-status', '❌ Invalid Supabase Anon Key', 'error');
+                log('Supabase Anon Key seems too short', 'error');
+                return false;
+            }
+
+            updateStatus('env-status', '✅ Environment configuration is valid', 'success');
+            log('Environment check passed', 'success');
+            return true;
+        }
+
+        // Step 2: Supabase Client Test
+        function testSupabaseClient() {
+            log('=== SUPABASE CLIENT TEST STARTED ===');
+            
+            if (!checkEnvironment()) {
+                updateStatus('client-status', '❌ Cannot test client - environment invalid', 'error');
+                return;
+            }
+
+            try {
+                const SUPABASE_URL = localStorage.getItem('SUPABASE_URL');
+                const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY');
+                
+                log(`Creating Supabase client with URL: ${SUPABASE_URL.substring(0, 30)}...`);
+                
+                if (typeof window.supabase === 'undefined') {
+                    updateStatus('client-status', '❌ Supabase library not loaded', 'error');
+                    log('Supabase library not found in window.supabase', 'error');
+                    return;
+                }
+
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                if (!supabase) {
+                    updateStatus('client-status', '❌ Failed to create Supabase client', 'error');
+                    log('createClient returned null', 'error');
+                    return;
+                }
+
+                updateStatus('client-status', '✅ Supabase client created successfully', 'success');
+                log('Supabase client created successfully', 'success');
+                
+            } catch (error) {
+                updateStatus('client-status', `❌ Error creating client: ${error.message}`, 'error');
+                log(`Client creation error: ${error.message}`, 'error');
+            }
+        }
+
+        // Step 3: Authentication Test
+        async function testAuthentication() {
+            log('=== AUTHENTICATION TEST STARTED ===');
+            
+            if (!supabase) {
+                updateStatus('auth-status', '❌ Cannot test auth - client not initialized', 'error');
+                return;
+            }
+
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser();
+                
+                if (error) {
+                    updateStatus('auth-status', `❌ Auth error: ${error.message}`, 'error');
+                    log(`Authentication error: ${error.message}`, 'error');
+                    return;
+                }
+
+                if (user) {
+                    currentUser = user;
+                    updateStatus('auth-status', `✅ User authenticated: ${user.email}`, 'success');
+                    document.getElementById('user-info').innerHTML = `
+                        <strong>User ID:</strong> ${user.id}<br>
+                        <strong>Email:</strong> ${user.email}<br>
+                        <strong>Created:</strong> ${new Date(user.created_at).toLocaleString()}
+                    `;
+                    log(`User authenticated: ${user.email}`, 'success');
+                } else {
+                    updateStatus('auth-status', '⚠️ No user currently authenticated', 'warning');
+                    document.getElementById('user-info').innerHTML = '<em>No user logged in</em>';
+                    log('No user currently authenticated', 'warning');
+                }
+                
+            } catch (error) {
+                updateStatus('auth-status', `❌ Auth test failed: ${error.message}`, 'error');
+                log(`Authentication test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin() {
+            log('=== LOGIN TEST STARTED ===');
+            
+            if (!supabase) {
+                log('Cannot test login - client not initialized', 'error');
+                return;
+            }
+
+            const email = prompt('Enter your email for login test:');
+            const password = prompt('Enter your password for login test:');
+            
+            if (!email || !password) {
+                log('Login test cancelled - no credentials provided', 'warning');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    log(`Login failed: ${error.message}`, 'error');
+                    alert(`Login failed: ${error.message}`);
+                } else {
+                    log(`Login successful: ${data.user.email}`, 'success');
+                    alert(`Login successful! User: ${data.user.email}`);
+                    currentUser = data.user;
+                    testAuthentication(); // Refresh auth status
+                }
+                
+            } catch (error) {
+                log(`Login test error: ${error.message}`, 'error');
+                alert(`Login test error: ${error.message}`);
+            }
+        }
+
+        async function testLogout() {
+            log('=== LOGOUT TEST STARTED ===');
+            
+            if (!supabase) {
+                log('Cannot test logout - client not initialized', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabase.auth.signOut();
+                
+                if (error) {
+                    log(`Logout failed: ${error.message}`, 'error');
+                    alert(`Logout failed: ${error.message}`);
+                } else {
+                    log('Logout successful', 'success');
+                    alert('Logout successful!');
+                    currentUser = null;
+                    testAuthentication(); // Refresh auth status
+                }
+                
+            } catch (error) {
+                log(`Logout test error: ${error.message}`, 'error');
+                alert(`Logout test error: ${error.message}`);
+            }
+        }
+
+        // Step 4: Database Access Test
+        async function testDatabaseRead() {
+            log('=== DATABASE READ TEST STARTED ===');
+            
+            if (!supabase) {
+                updateStatus('db-status', '❌ Cannot test database - client not initialized', 'error');
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .limit(5);
+
+                if (error) {
+                    updateStatus('db-status', `❌ READ failed: ${error.message}`, 'error');
+                    log(`Database read error: ${error.message}`, 'error');
+                    log(`Error code: ${error.code}`, 'error');
+                    log(`Error details: ${JSON.stringify(error)}`, 'error');
+                } else {
+                    updateStatus('db-status', `✅ READ successful: Found ${data.length} products`, 'success');
+                    log(`Read successful: Found ${data.length} products`, 'success');
+                    if (data.length > 0) {
+                        log(`Sample product: ${JSON.stringify(data[0], null, 2)}`, 'info');
+                    }
+                }
+                
+            } catch (error) {
+                updateStatus('db-status', `❌ READ test failed: ${error.message}`, 'error');
+                log(`Database read test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDatabaseWrite() {
+            log('=== DATABASE WRITE TEST STARTED ===');
+            
+            if (!supabase) {
+                updateStatus('db-status', '❌ Cannot test database - client not initialized', 'error');
+                return;
+            }
+
+            const testProduct = {
+                name: `Debug Test Product ${Date.now()}`,
+                brand: 'Debug Brand',
+                category: 'debug',
+                price: 999,
+                description: 'This is a test product created by the debug panel',
+                image_url: 'https://via.placeholder.com/300x300?text=Debug+Product'
+            };
+
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .insert([testProduct])
+                    .select();
+
+                if (error) {
+                    updateStatus('db-status', `❌ WRITE failed: ${error.message}`, 'error');
+                    log(`Database write error: ${error.message}`, 'error');
+                    log(`Error code: ${error.code}`, 'error');
+                    log(`Error details: ${JSON.stringify(error)}`, 'error');
+                } else {
+                    updateStatus('db-status', `✅ WRITE successful: Product created with ID ${data[0].id}`, 'success');
+                    log(`Write successful: Product created with ID ${data[0].id}`, 'success');
+                    log(`Created product: ${JSON.stringify(data[0], null, 2)}`, 'info');
+                }
+                
+            } catch (error) {
+                updateStatus('db-status', `❌ WRITE test failed: ${error.message}`, 'error');
+                log(`Database write test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDatabaseDelete() {
+            log('=== DATABASE DELETE TEST STARTED ===');
+            
+            if (!supabase) {
+                updateStatus('db-status', '❌ Cannot test database - client not initialized', 'error');
+                return;
+            }
+
+            try {
+                // First, find a test product to delete
+                const { data: testProducts, error: findError } = await supabase
+                    .from('products')
+                    .select('id, name')
+                    .like('name', 'Debug Test Product%')
+                    .limit(1);
+
+                if (findError) {
+                    updateStatus('db-status', `❌ Cannot find test product: ${findError.message}`, 'error');
+                    log(`Find test product error: ${findError.message}`, 'error');
+                    return;
+                }
+
+                if (testProducts.length === 0) {
+                    updateStatus('db-status', '⚠️ No test products found to delete', 'warning');
+                    log('No test products found to delete', 'warning');
+                    return;
+                }
+
+                const productToDelete = testProducts[0];
+                log(`Attempting to delete product: ${productToDelete.name} (ID: ${productToDelete.id})`, 'info');
+
+                const { error } = await supabase
+                    .from('products')
+                    .delete()
+                    .eq('id', productToDelete.id);
+
+                if (error) {
+                    updateStatus('db-status', `❌ DELETE failed: ${error.message}`, 'error');
+                    log(`Database delete error: ${error.message}`, 'error');
+                    log(`Error code: ${error.code}`, 'error');
+                } else {
+                    updateStatus('db-status', `✅ DELETE successful: Product ${productToDelete.id} deleted`, 'success');
+                    log(`Delete successful: Product ${productToDelete.id} deleted`, 'success');
+                }
+                
+            } catch (error) {
+                updateStatus('db-status', `❌ DELETE test failed: ${error.message}`, 'error');
+                log(`Database delete test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Step 5: RLS Policy Test
+        async function testRLSPolicies() {
+            log('=== RLS POLICY TEST STARTED ===');
+            
+            if (!supabase) {
+                updateStatus('rls-status', '❌ Cannot test RLS - client not initialized', 'error');
+                return;
+            }
+
+            if (!currentUser) {
+                updateStatus('rls-status', '⚠️ Cannot test RLS - no user authenticated', 'warning');
+                log('Cannot test RLS policies without authenticated user', 'warning');
+                return;
+            }
+
+            try {
+                // Test if user has admin role
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (profileError) {
+                    updateStatus('rls-status', `❌ Cannot check user role: ${profileError.message}`, 'error');
+                    log(`Profile check error: ${profileError.message}`, 'error');
+                    return;
+                }
+
+                log(`User role: ${profile.role}`, 'info');
+                updateStatus('rls-status', `✅ User role: ${profile.role}`, 'success');
+
+                // Test admin-specific operations
+                if (profile.role === 'admin') {
+                    log('Testing admin-specific operations...', 'info');
+                    
+                    // Test admin read
+                    const { data: adminRead, error: adminReadError } = await supabase
+                        .from('products')
+                        .select('*')
+                        .limit(1);
+
+                    if (adminReadError) {
+                        log(`Admin read test failed: ${adminReadError.message}`, 'error');
+                    } else {
+                        log('Admin read test passed', 'success');
+                    }
+                } else {
+                    log('User is not admin - limited RLS testing', 'warning');
+                }
+                
+            } catch (error) {
+                updateStatus('rls-status', `❌ RLS test failed: ${error.message}`, 'error');
+                log(`RLS test error: ${error.message}`, 'error');
+            }
+        }
+
+        // Step 6: Complete Integration Test
+        async function runCompleteTest() {
+            log('=== COMPLETE INTEGRATION TEST STARTED ===');
+            
+            updateStatus('integration-status', '🔄 Running complete test...', 'info');
+            
+            // Run all tests in sequence
+            const tests = [
+                { name: 'Environment', fn: checkEnvironment },
+                { name: 'Client', fn: testSupabaseClient },
+                { name: 'Authentication', fn: testAuthentication },
+                { name: 'Database Read', fn: testDatabaseRead },
+                { name: 'Database Write', fn: testDatabaseWrite },
+                { name: 'RLS Policies', fn: testRLSPolicies }
+            ];
+
+            let passedTests = 0;
+            let totalTests = tests.length;
+
+            for (const test of tests) {
+                log(`Running ${test.name} test...`, 'info');
+                try {
+                    await test.fn();
+                    passedTests++;
+                    log(`${test.name} test completed`, 'success');
+                } catch (error) {
+                    log(`${test.name} test failed: ${error.message}`, 'error');
+                }
+                // Small delay between tests
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            const successRate = (passedTests / totalTests) * 100;
+            if (successRate >= 80) {
+                updateStatus('integration-status', `✅ Integration test completed: ${passedTests}/${totalTests} tests passed (${successRate.toFixed(1)}%)`, 'success');
+            } else if (successRate >= 50) {
+                updateStatus('integration-status', `⚠️ Integration test completed: ${passedTests}/${totalTests} tests passed (${successRate.toFixed(1)}%) - Some issues detected`, 'warning');
+            } else {
+                updateStatus('integration-status', `❌ Integration test completed: ${passedTests}/${totalTests} tests passed (${successRate.toFixed(1)}%) - Major issues detected`, 'error');
+            }
+
+            log(`Complete integration test finished: ${passedTests}/${totalTests} tests passed`, 'info');
+        }
+
+        // Auto-run environment check on page load
+        window.addEventListener('load', function() {
+            log('Debug panel loaded - starting environment check...', 'info');
+            setTimeout(checkEnvironment, 500);
+        });
+    </script>
+</body>
+</html>
