@@ -337,11 +337,10 @@
       console.log('Form clicked:', e.target.id);
     });
 
-    // Test save button
-    document.getElementById('save-product-btn').addEventListener('click', () => {
+    // Save button - no need to dispatch event since it's already a submit button
+    document.getElementById('save-product-btn').addEventListener('click', (e) => {
       console.log('Save button clicked!');
-      // Force form submission
-      document.getElementById('product-form').dispatchEvent(new Event('submit'));
+      // Don't dispatch additional events - let the form submit naturally
     });
 
     // Test Supabase connection
@@ -385,9 +384,21 @@
       }
     });
 
+    let isSubmitting = false; // Flag to prevent double submission
+    
     document.getElementById('product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      console.log('Product form submitted!');
+      
+      // Prevent double submission
+      if (isSubmitting) {
+        console.log('Form submission already in progress, ignoring...');
+        return;
+      }
+      
+      isSubmitting = true;
+      
+      try {
+        console.log('Product form submitted!');
       console.log('Form data:', {
         name: document.getElementById('p-name').value,
         brand: document.getElementById('p-brand').value,
@@ -484,9 +495,13 @@
         saveProducts(list);
         alert('Saved to local storage (Supabase not configured)');
       }
-      renderStats();
-      renderList(document.getElementById('search').value || '');
-      clearForm();
+        renderStats();
+        renderList(document.getElementById('search').value || '');
+        clearForm();
+      } finally {
+        // Reset submission flag
+        isSubmitting = false;
+      }
     });
 
     document.getElementById('product-list').addEventListener('click', async (e) => {

@@ -1090,11 +1090,18 @@
       // Add to cart (card button) – handle first and stop further processing
       const addBtn = target.closest('.add-to-cart');
       if (addBtn) {
+        console.log('Add to cart button clicked!');
         const id = addBtn.dataset.productId;
+        console.log('Product ID:', id);
+        console.log('Available products:', products.length);
         const product = products.find((p) => p.id === id);
+        console.log('Found product:', product);
         if (product) {
           cart.addItem(product, 1);
           showNotification('Added to cart');
+        } else {
+          console.error('Product not found for ID:', id);
+          showNotification('Product not found', 'error');
         }
         return;
       }
