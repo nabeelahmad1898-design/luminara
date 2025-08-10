@@ -110,9 +110,10 @@
         <div class="test-section">
             <h3><span class="step-number">4</span>Database Access Test</h3>
             <div id="db-status" class="status info">Waiting to test database...</div>
-            <button onclick="testDatabaseRead()">Test READ</button>
-            <button onclick="testDatabaseWrite()">Test WRITE</button>
-            <button onclick="testDatabaseDelete()">Test DELETE</button>
+                         <button onclick="testDatabaseRead()">Test READ</button>
+             <button onclick="testDatabaseWrite()">Test WRITE</button>
+             <button onclick="testDatabaseDelete()">Test DELETE</button>
+             <button onclick="refreshSchemaCache()">🔄 Refresh Schema Cache</button>
         </div>
 
         <div class="test-section">
@@ -398,6 +399,32 @@
                 return;
             }
 
+            // First, let's check what columns actually exist in the products table
+            log('Checking products table schema...', 'info');
+            const { data: schemaCheck, error: schemaError } = await supabase
+                .from('products')
+                .select('*')
+                .limit(1);
+
+            if (schemaError) {
+                updateStatus('db-status', `❌ Schema check failed: ${schemaError.message}`, 'error');
+                log(`Schema check error: ${schemaError.message}`, 'error');
+                return;
+            }
+
+            if (schemaCheck.length > 0) {
+                const columns = Object.keys(schemaCheck[0]);
+                log(`Available columns in products table: ${columns.join(', ')}`, 'info');
+                
+                // Check if there's an ID column with different casing
+                const idColumn = columns.find(col => col.toLowerCase() === 'id');
+                if (idColumn) {
+                    log(`Found ID column: "${idColumn}"`, 'info');
+                } else {
+                    log('No ID column found - table may use different primary key', 'warning');
+                }
+            }
+
             const testProduct = {
                 name: `Debug Test Product ${Date.now()}`,
                 brand: 'Debug Brand',
@@ -482,9 +509,40 @@
                 updateStatus('db-status', `❌ DELETE test failed: ${error.message}`, 'error');
                 log(`Database delete test error: ${error.message}`, 'error');
             }
-        }
+                 }
 
-        // Step 5: RLS Policy Test
+         // Refresh Schema Cache Function
+         async function refreshSchemaCache() {
+             log('=== REFRESHING SCHEMA CACHE ===');
+             
+             if (!supabase) {
+                 log('Cannot refresh schema - client not initialized', 'error');
+                 return;
+             }
+
+             try {
+                 // Force a schema refresh by making a simple query
+                 log('Forcing schema cache refresh...', 'info');
+                 const { data, error } = await supabase
+                     .from('products')
+                     .select('*')
+                     .limit(0);
+
+                 if (error) {
+                     log(`Schema refresh error: ${error.message}`, 'error');
+                     alert(`Schema refresh failed: ${error.message}`);
+                 } else {
+                     log('Schema cache refreshed successfully', 'success');
+                     alert('Schema cache refreshed! Try the WRITE test again.');
+                 }
+                 
+             } catch (error) {
+                 log(`Schema refresh error: ${error.message}`, 'error');
+                 alert(`Schema refresh error: ${error.message}`);
+             }
+         }
+
+         // Step 5: RLS Policy Test
         async function testRLSPolicies() {
             log('=== RLS POLICY TEST STARTED ===');
             
