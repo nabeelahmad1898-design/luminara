@@ -105,43 +105,74 @@
   </main>
 
   <script>
-    // Supabase client
-    const SUPABASE_URL = window.SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || '';
-    const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || '';
-    const spConfigured = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY && !/YOUR_/.test(SUPABASE_ANON_KEY);
-    const sp = spConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+    // Supabase client - Initialize properly
+    let sp = null;
+    let spConfigured = false;
     
-    // Debug Supabase connection
-    console.log('Dashboard - Supabase Configuration:', {
-      url: SUPABASE_URL,
-      keyConfigured: !!SUPABASE_ANON_KEY && !/YOUR_/.test(SUPABASE_ANON_KEY),
-      spConfigured: spConfigured,
-      client: !!sp
-    });
-    
-    // Check if we're on the right page
-    console.log('Dashboard page loaded, checking authentication...');
-    
-    // Check if logout button exists
-    const logoutBtn = document.getElementById('logout');
-    if (logoutBtn) {
-      console.log('Logout button found');
-      logoutBtn.addEventListener('click', () => {
-        console.log('Logout button clicked (test)');
-      });
-    } else {
-      console.error('Logout button not found!');
+    async function initializeSupabase() {
+      try {
+        const SUPABASE_URL = window.SUPABASE_URL || localStorage.getItem('SUPABASE_URL') || '';
+        const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || localStorage.getItem('SUPABASE_ANON_KEY') || '';
+        
+        spConfigured = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY && !/YOUR_/.test(SUPABASE_ANON_KEY);
+        
+        if (spConfigured) {
+          sp = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          console.log('✅ Supabase client initialized successfully');
+          
+          // Test the connection
+          const { data, error } = await sp.auth.getUser();
+          if (error) {
+            console.warn('⚠️ Supabase auth check failed:', error.message);
+          } else {
+            console.log('✅ Supabase connection verified');
+          }
+        } else {
+          console.warn('⚠️ Supabase not configured - using local storage only');
+        }
+      } catch (error) {
+        console.error('❌ Failed to initialize Supabase:', error);
+        spConfigured = false;
+        sp = null;
+      }
     }
     
-    // Debug authentication status
-    if (spConfigured) {
-      sp.auth.getUser().then(({ data, error }) => {
-        console.log('Authentication Status:', { data, error });
-        if (data?.user) {
-          console.log('User ID:', data.user.id);
-          console.log('User Email:', data.user.email);
-        }
+    // Initialize everything properly
+    async function initializeDashboard() {
+      console.log('🚀 Initializing dashboard...');
+      
+      // 1. Initialize Supabase first
+      await initializeSupabase();
+      
+      // 2. Debug Supabase connection
+      console.log('Dashboard - Supabase Configuration:', {
+        spConfigured: spConfigured,
+        client: !!sp
       });
+      
+      // 3. Check authentication status
+      if (spConfigured && sp) {
+        try {
+          const { data, error } = await sp.auth.getUser();
+          console.log('Authentication Status:', { data, error });
+          if (data?.user) {
+            console.log('User ID:', data.user.id);
+            console.log('User Email:', data.user.email);
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+        }
+      }
+      
+      // 4. Load data from Supabase
+      await loadFromSupabaseIntoList();
+      
+      // 5. Render everything
+      renderStats();
+      renderList();
+      renderOrders();
+      
+      console.log('✅ Dashboard initialization complete');
     }
     
     // Session guard
@@ -602,12 +633,17 @@
       }
     }
 
-    // Initial render
-    renderStats();
-    if (!(await loadFromSupabaseIntoList())) {
-      renderList('');
-    }
-    renderOrders();
+    // Start initialization when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, starting dashboard initialization...');
+      initializeDashboard().catch(error => {
+        console.error('Dashboard initialization failed:', error);
+        // Fallback to local storage
+        renderStats();
+        renderList('');
+        renderOrders();
+      });
+    });
   </script>
 </body>
 </html>

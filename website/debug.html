@@ -646,7 +646,16 @@
         // Auto-run environment check on page load
         window.addEventListener('load', function() {
             log('Debug panel loaded - starting environment check...', 'info');
-            setTimeout(checkEnvironment, 500);
+            setTimeout(async function() {
+                try {
+                    checkEnvironment();
+                    if (checkEnvironment()) {
+                        testSupabaseClient();
+                    }
+                } catch (error) {
+                    log(`Auto-initialization failed: ${error.message}`, 'error');
+                }
+            }, 500);
         });
     </script>
 </body>
