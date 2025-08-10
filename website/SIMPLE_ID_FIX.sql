@@ -5,23 +5,23 @@
 SELECT column_name, data_type, is_nullable, column_default
 FROM information_schema.columns 
 WHERE table_name = 'products' 
-    AND column_name = 'ID';
+    AND column_name = 'id';
 
 -- 2. Drop the primary key constraint first
 ALTER TABLE products DROP CONSTRAINT IF EXISTS products_pkey;
 
 -- 3. Drop the existing ID column
-ALTER TABLE products DROP COLUMN IF EXISTS "ID";
+ALTER TABLE products DROP COLUMN IF EXISTS id;
 
 -- 4. Add the ID column back as SERIAL (auto-incrementing)
-ALTER TABLE products ADD COLUMN "ID" SERIAL PRIMARY KEY;
+ALTER TABLE products ADD COLUMN id SERIAL PRIMARY KEY;
 
 -- 5. Test inserting a product
 INSERT INTO products (name, brand, category, price) 
 VALUES ('Test Product', 'Test Brand', 'Test Category', 99.99);
 
 -- 6. Check if the insert worked
-SELECT "ID", name, brand, category, price 
+SELECT id, name, brand, category, price 
 FROM products 
 WHERE name = 'Test Product' 
 ORDER BY created_at DESC 

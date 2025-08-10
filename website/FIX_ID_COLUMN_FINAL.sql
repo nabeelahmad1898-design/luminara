@@ -31,14 +31,14 @@ SELECT
     identity_increment
 FROM information_schema.columns 
 WHERE table_name = 'products' 
-    AND column_name = 'ID';
+    AND column_name = 'id';
 
 -- 4. Fix the ID column to be properly auto-incrementing
 -- First, drop the existing primary key constraint
 ALTER TABLE products DROP CONSTRAINT IF EXISTS products_pkey;
 
 -- 5. Modify the ID column to be SERIAL (auto-incrementing)
-ALTER TABLE products ALTER COLUMN "ID" SET DATA TYPE SERIAL;
+ALTER TABLE products ALTER COLUMN id SET DATA TYPE SERIAL;
 
 -- 6. If the above doesn't work, try this alternative approach:
 -- Create a new sequence and set it as the default for ID
@@ -50,23 +50,23 @@ BEGIN
     END IF;
     
     -- Set the sequence as the default for the ID column
-    ALTER TABLE products ALTER COLUMN "ID" SET DEFAULT nextval('products_id_seq');
+    ALTER TABLE products ALTER COLUMN id SET DEFAULT nextval('products_id_seq');
     
     -- Set the sequence to start from the current maximum ID + 1
-    PERFORM setval('products_id_seq', COALESCE((SELECT MAX("ID") FROM products), 0) + 1);
+    PERFORM setval('products_id_seq', COALESCE((SELECT MAX(id) FROM products), 0) + 1);
     
     RAISE NOTICE 'ID column configured with sequence';
 END $$;
 
 -- 7. Re-add the primary key constraint
-ALTER TABLE products ADD CONSTRAINT products_pkey PRIMARY KEY ("ID");
+ALTER TABLE products ADD CONSTRAINT products_pkey PRIMARY KEY (id);
 
 -- 8. Test inserting a product
 INSERT INTO products (name, brand, category, price) 
 VALUES ('Test Product', 'Test Brand', 'Test Category', 99.99);
 
 -- 9. Check if the insert worked
-SELECT "ID", name, brand, category, price 
+SELECT id, name, brand, category, price 
 FROM products 
 WHERE name = 'Test Product' 
 ORDER BY created_at DESC 

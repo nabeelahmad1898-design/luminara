@@ -25,7 +25,7 @@ END $$;
 SELECT column_name, data_type, is_nullable, column_default
 FROM information_schema.columns 
 WHERE table_name = 'products' 
-    AND column_name IN ('id', 'ID')
+    AND column_name IN ('id')
 ORDER BY column_name;
 
 -- 4. Test that we can insert a product
@@ -33,7 +33,7 @@ INSERT INTO products (name, brand, category, price)
 VALUES ('Test Product', 'Test Brand', 'Test Category', 99.99);
 
 -- 5. Check if the insert worked
-SELECT "ID", name, brand, category, price 
+SELECT id, name, brand, category, price 
 FROM products 
 WHERE name = 'Test Product' 
 ORDER BY created_at DESC 

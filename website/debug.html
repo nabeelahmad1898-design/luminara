@@ -447,7 +447,7 @@
                     log(`Error code: ${error.code}`, 'error');
                     log(`Error details: ${JSON.stringify(error)}`, 'error');
                 } else {
-                    const productId = data[0].id || data[0].ID || 'unknown';
+                    const productId = data[0].id || 'unknown';
                     updateStatus('db-status', `✅ WRITE successful: Product created with ID ${productId}`, 'success');
                     log(`Write successful: Product created with ID ${productId}`, 'success');
                     log(`Created product: ${JSON.stringify(data[0], null, 2)}`, 'info');
@@ -488,7 +488,7 @@
                 }
 
                 const productToDelete = testProducts[0];
-                const productId = productToDelete.id || productToDelete.ID;
+                const productId = productToDelete.id;
                 log(`Attempting to delete product: ${productToDelete.name} (ID: ${productId})`, 'info');
 
                 const { error } = await supabase
