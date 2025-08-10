@@ -55,7 +55,10 @@
     <section class="card p-4">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-lg font-semibold">Add / Edit Product</h2>
-        <button id="reset-form" class="btn-secondary">Clear Form</button>
+        <div class="flex gap-2">
+          <button id="test-supabase" class="btn-secondary">Test Supabase</button>
+          <button id="reset-form" class="btn-secondary">Clear Form</button>
+        </div>
       </div>
       <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <input class="form-input" id="p-id" placeholder="ID (auto for new)" disabled />
@@ -108,12 +111,15 @@
     const sp = spConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     
     // Debug Supabase connection
-    console.log('Supabase Configuration:', {
+    console.log('Dashboard - Supabase Configuration:', {
       url: SUPABASE_URL,
       keyConfigured: !!SUPABASE_ANON_KEY && !/YOUR_/.test(SUPABASE_ANON_KEY),
       spConfigured: spConfigured,
       client: !!sp
     });
+    
+    // Check if we're on the right page
+    console.log('Dashboard page loaded, checking authentication...');
     
     // Debug authentication status
     if (spConfigured) {
@@ -253,8 +259,48 @@
 
     document.getElementById('reset-form').addEventListener('click', clearForm);
 
+    // Test Supabase connection
+    document.getElementById('test-supabase').addEventListener('click', async () => {
+      console.log('Testing Supabase connection...');
+      if (!spConfigured) {
+        alert('Supabase not configured!');
+        return;
+      }
+      
+      try {
+        // Test authentication
+        const { data: { user }, error: authError } = await sp.auth.getUser();
+        console.log('Auth test:', { user, authError });
+        
+        if (authError || !user) {
+          alert('Authentication failed: ' + (authError?.message || 'No user'));
+          return;
+        }
+        
+        // Test database access
+        const { data, error } = await sp.from('products').select('count').limit(1);
+        console.log('Database test:', { data, error });
+        
+        if (error) {
+          alert('Database access failed: ' + error.message);
+        } else {
+          alert('Supabase connection working! User: ' + user.email);
+        }
+      } catch (err) {
+        console.error('Test error:', err);
+        alert('Test failed: ' + err.message);
+      }
+    });
+
     document.getElementById('product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      console.log('Product form submitted!');
+      console.log('Form data:', {
+        name: document.getElementById('p-name').value,
+        brand: document.getElementById('p-brand').value,
+        category: document.getElementById('p-category').value,
+        price: document.getElementById('p-price').value
+      });
       const id = document.getElementById('p-id').value.trim();
       const now = new Date().toISOString();
       const product = {
