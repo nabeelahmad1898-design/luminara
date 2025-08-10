@@ -80,7 +80,7 @@
           <input id="p-featured" type="checkbox" /> Featured
         </label>
         <div class="md:col-span-2 flex gap-2">
-          <button class="btn-primary" type="submit">Save Product</button>
+          <button class="btn-primary" type="submit" id="save-product-btn">Save Product</button>
           <button id="delete-product" class="btn-danger" type="button">Delete</button>
         </div>
       </form>
@@ -258,6 +258,16 @@
     });
 
     document.getElementById('reset-form').addEventListener('click', clearForm);
+
+    // Test form submission
+    document.getElementById('product-form').addEventListener('click', (e) => {
+      console.log('Form clicked:', e.target.id);
+    });
+
+    // Test save button
+    document.getElementById('save-product-btn').addEventListener('click', () => {
+      console.log('Save button clicked!');
+    });
 
     // Test Supabase connection
     document.getElementById('test-supabase').addEventListener('click', async () => {
