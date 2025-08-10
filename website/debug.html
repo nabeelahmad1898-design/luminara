@@ -399,6 +399,7 @@
             }
 
             const testProduct = {
+                id: `debug-${Date.now()}`,
                 name: `Debug Test Product ${Date.now()}`,
                 brand: 'Debug Brand',
                 category: 'debug',
@@ -443,7 +444,7 @@
                 // First, find a test product to delete
                 const { data: testProducts, error: findError } = await supabase
                     .from('products')
-                    .select('name')
+                    .select('id, name')
                     .like('name', 'Debug Test Product%')
                     .limit(1);
 
@@ -460,20 +461,20 @@
                 }
 
                 const productToDelete = testProducts[0];
-                log(`Attempting to delete product: ${productToDelete.name}`, 'info');
+                log(`Attempting to delete product: ${productToDelete.name} (ID: ${productToDelete.id})`, 'info');
 
                 const { error } = await supabase
                     .from('products')
                     .delete()
-                    .eq('name', productToDelete.name);
+                    .eq('id', productToDelete.id);
 
                 if (error) {
                     updateStatus('db-status', `❌ DELETE failed: ${error.message}`, 'error');
                     log(`Database delete error: ${error.message}`, 'error');
                     log(`Error code: ${error.code}`, 'error');
                 } else {
-                    updateStatus('db-status', `✅ DELETE successful: Product ${productToDelete.id} deleted`, 'success');
-                    log(`Delete successful: Product ${productToDelete.id} deleted`, 'success');
+                    updateStatus('db-status', `✅ DELETE successful: Product "${productToDelete.name}" deleted`, 'success');
+                    log(`Delete successful: Product "${productToDelete.name}" deleted`, 'success');
                 }
                 
             } catch (error) {
