@@ -303,6 +303,8 @@
     // Test save button
     document.getElementById('save-product-btn').addEventListener('click', () => {
       console.log('Save button clicked!');
+      // Force form submission
+      document.getElementById('product-form').dispatchEvent(new Event('submit'));
     });
 
     // Test Supabase connection
@@ -323,14 +325,22 @@
           return;
         }
         
-        // Test database access
-        const { data, error } = await sp.from('products').select('count').limit(1);
-        console.log('Database test:', { data, error });
+        // Test database access with detailed error info
+        console.log('Testing database access...');
+        const { data, error } = await sp.from('products').select('*').limit(1);
+        console.log('Database test result:', { data, error });
         
         if (error) {
-          alert('Database access failed: ' + error.message);
+          console.error('Database error details:', {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          });
+          alert('Database access failed: ' + error.message + '\n\nError code: ' + error.code);
         } else {
-          alert('Supabase connection working! User: ' + user.email);
+          console.log('Database access successful, found', data?.length || 0, 'products');
+          alert('Supabase connection working! User: ' + user.email + '\n\nProducts in database: ' + (data?.length || 0));
         }
       } catch (err) {
         console.error('Test error:', err);
