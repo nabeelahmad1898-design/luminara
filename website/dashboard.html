@@ -102,8 +102,24 @@
 
     <section class="card p-4">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-lg font-semibold">Orders (Local)</h2>
-        <button id="clear-orders" class="btn-danger">Clear All</button>
+        <h2 class="text-lg font-semibold">Customer Cart Analysis</h2>
+        <div class="flex gap-2">
+          <button id="clear-local-products" class="btn-secondary">Clear Local Products</button>
+          <button id="refresh-carts" class="btn-secondary">Refresh Carts</button>
+        </div>
+      </div>
+      <div id="cart-analysis" class="space-y-3">
+        <div class="text-gray-400">Loading cart data...</div>
+      </div>
+    </section>
+
+    <section class="card p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-lg font-semibold">Orders Management</h2>
+        <div class="flex gap-2">
+          <button id="clear-orders" class="btn-danger">Clear All</button>
+          <button id="refresh-orders" class="btn-secondary">Refresh Orders</button>
+        </div>
       </div>
       <div id="orders" class="space-y-3"></div>
     </section>
@@ -178,6 +194,7 @@
       // 5. Render everything
       renderStats();
       renderList();
+      renderCartAnalysis();
       renderOrders();
       
       console.log('✅ Dashboard initialization complete');
@@ -215,6 +232,29 @@
 
     // UI
     const currency = (n) => 'PKR ' + Number(n || 0).toLocaleString();
+    
+    // Notification system
+    function showNotification(message, type = 'success') {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg ${
+        type === 'success' ? 'bg-green-600 text-white' :
+        type === 'error' ? 'bg-red-600 text-white' :
+        type === 'warning' ? 'bg-yellow-600 text-black' :
+        'bg-blue-600 text-white'
+      }`;
+      notification.textContent = message;
+      
+      // Add to page
+      document.body.appendChild(notification);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 3000);
+    }
 
     function renderStats() {
       const products = loadProducts();
@@ -276,6 +316,54 @@
 
     function clearForm() { fillForm({}); }
 
+    function renderCartAnalysis() {
+      const wrap = document.getElementById('cart-analysis');
+      const carts = JSON.parse(localStorage.getItem('cart') || '[]');
+      
+      wrap.innerHTML = '';
+      if (carts.length === 0) { 
+        wrap.innerHTML = '<div class="text-gray-400">No active carts found.</div>'; 
+        return; 
+      }
+      
+      // Group items by product for analysis
+      const productAnalysis = {};
+      carts.forEach(item => {
+        const key = `${item.id}-${item.selectedSize || 'no-size'}`;
+        if (!productAnalysis[key]) {
+          productAnalysis[key] = {
+            product: item,
+            totalQuantity: 0,
+            totalValue: 0,
+            customers: new Set()
+          };
+        }
+        productAnalysis[key].totalQuantity += item.quantity;
+        productAnalysis[key].totalValue += item.price * item.quantity;
+      });
+      
+      // Display analysis
+      Object.values(productAnalysis).forEach(analysis => {
+        const div = document.createElement('div');
+        div.className = 'card p-3';
+        div.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div class="flex-1">
+              <div class="font-semibold">${analysis.product.name}</div>
+              <div class="text-sm text-gray-300">${analysis.product.brand} • ID: ${analysis.product.id}</div>
+              ${analysis.product.selectedSize ? `<div class="text-sm text-blue-400">Size: ${analysis.product.selectedSize}</div>` : ''}
+              <div class="text-xs text-gray-400">Category: ${analysis.product.category}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-yellow-500 font-bold">${currency(analysis.totalValue)}</div>
+              <div class="text-sm text-gray-300">Qty: ${analysis.totalQuantity}</div>
+            </div>
+          </div>
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
     function renderOrders() {
       const wrap = document.getElementById('orders');
       const orders = loadOrders().slice().reverse();
@@ -286,14 +374,35 @@
         div.className = 'card p-3';
         div.innerHTML = `
           <div class="flex items-center justify-between">
-            <div>
+            <div class="flex-1">
               <div class="font-semibold">${o.id}</div>
               <div class="text-sm text-gray-300">${new Date(o.createdAt).toLocaleString()} • ${o.items.length} items • ${o.paymentMethod.toUpperCase()}</div>
               <div class="text-xs text-gray-400">${o.customerInfo.name} — ${o.customerInfo.email}</div>
+              <div class="text-xs text-gray-400">${o.customerInfo.address}</div>
+              
+              <!-- Order Items with Size Information -->
+              <div class="mt-2 space-y-1">
+                ${o.items.map(item => `
+                  <div class="text-xs bg-gray-700 p-2 rounded">
+                    <strong>${item.name}</strong> (ID: ${item.id}) • Size: ${item.size} • Qty: ${item.quantity} • ${currency(item.price * item.quantity)}
+                  </div>
+                `).join('')}
+              </div>
             </div>
-            <div class="text-right">
+            <div class="text-right ml-4">
               <div class="text-yellow-500 font-bold">${currency(o.total)}</div>
               <div class="text-xs text-gray-400">${o.status}</div>
+              
+              <!-- Order Status Management -->
+              <div class="mt-2 space-y-1">
+                <select class="form-input text-xs" data-order-id="${o.id}" data-status-update>
+                  <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+                  <option value="dispatched" ${o.status === 'dispatched' ? 'selected' : ''}>Dispatched</option>
+                  <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Completed</option>
+                </select>
+                ${o.status === 'dispatched' ? `<div class="text-xs text-green-400">Dispatched: ${o.dispatchedAt ? new Date(o.dispatchedAt).toLocaleDateString() : 'N/A'}</div>` : ''}
+                ${o.status === 'completed' ? `<div class="text-xs text-blue-400">Completed: ${o.completedAt ? new Date(o.completedAt).toLocaleDateString() : 'N/A'}</div>` : ''}
+              </div>
             </div>
           </div>
         `;
@@ -577,12 +686,100 @@
       renderList(e.target.value || '');
     });
 
+    // Clear local products button (moved from main website)
+    document.getElementById('clear-local-products').addEventListener('click', async () => {
+      console.log('Clearing local products...');
+      
+      // Clear local products
+      localStorage.removeItem('products');
+      
+      // Force refresh from Supabase
+      await loadFromSupabaseIntoList();
+      renderStats();
+      renderList();
+      showNotification('Local products cleared! Loaded from Supabase.', 'success');
+    });
+
+    // Refresh carts button
+    document.getElementById('refresh-carts').addEventListener('click', () => {
+      renderCartAnalysis();
+      showNotification('Cart analysis refreshed!', 'success');
+    });
+
+    // Refresh orders button
+    document.getElementById('refresh-orders').addEventListener('click', () => {
+      renderOrders();
+      showNotification('Orders refreshed!', 'success');
+    });
+
+    // Order status update
+    document.addEventListener('change', (e) => {
+      if (e.target.hasAttribute('data-status-update')) {
+        const orderId = e.target.dataset.orderId;
+        const newStatus = e.target.value;
+        updateOrderStatus(orderId, newStatus);
+      }
+    });
+
+    // Clear orders button
     document.getElementById('clear-orders').addEventListener('click', () => {
       if (!confirm('Clear all orders from this device?')) return;
       saveOrders([]);
       renderStats();
       renderOrders();
     });
+
+    function updateOrderStatus(orderId, newStatus) {
+      const orders = loadOrders();
+      const orderIndex = orders.findIndex(o => o.id === orderId);
+      
+      if (orderIndex !== -1) {
+        const order = orders[orderIndex];
+        order.status = newStatus;
+        
+        // Add timestamps for status changes
+        if (newStatus === 'dispatched') {
+          order.dispatchedAt = new Date().toISOString();
+        } else if (newStatus === 'completed') {
+          order.completedAt = new Date().toISOString();
+        }
+        
+        orders[orderIndex] = order;
+        saveOrders(orders);
+        
+        // Update Supabase if configured
+        if (spConfigured) {
+          updateOrderStatusInSupabase(orderId, newStatus, order.dispatchedAt, order.completedAt);
+        }
+        
+        showNotification(`Order ${orderId} status updated to ${newStatus}`, 'success');
+        renderStats();
+        renderOrders();
+      }
+    }
+
+    async function updateOrderStatusInSupabase(orderId, status, dispatchedAt, completedAt) {
+      if (!sp) return;
+      
+      try {
+        const updateData = { status };
+        if (dispatchedAt) updateData.dispatched_at = dispatchedAt;
+        if (completedAt) updateData.completed_at = completedAt;
+        
+        const { error } = await sp
+          .from('orders')
+          .update(updateData)
+          .eq('id', orderId);
+          
+        if (error) {
+          console.error('Error updating order status in Supabase:', error);
+        } else {
+          console.log('Order status updated in Supabase');
+        }
+      } catch (error) {
+        console.error('Error updating order status:', error);
+      }
+    }
 
     async function loadFromSupabaseIntoList() {
       if (!spConfigured) {
