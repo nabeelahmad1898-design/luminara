@@ -42,13 +42,13 @@
 
   <style>
     :root {
-      --bg-primary: #000000;
-      --bg-secondary: #0a0a0a;
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #f8f9fa;
       --gold-primary: #FFD700;
       --gold-secondary: #e6c200;
-      --text-primary: #FFFFFF;
-      --text-secondary: #b3b3b3;
-      --border-subtle: #1a1a1a;
+      --text-primary: #000000;
+      --text-secondary: #6b7280;
+      --border-subtle: #e5e7eb;
     }
 
     html, body { height: 100%; }
@@ -78,15 +78,15 @@
     .btn-secondary { border: 1px solid var(--gold-primary); color: var(--gold-primary); font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all .2s ease; }
     .btn-secondary:hover { background: var(--gold-primary); color: #000; }
 
-    .form-input { background: #0f0f0f; border: 1px solid var(--border-subtle); color: #fff; border-radius: 0.5rem; padding: 0.75rem 1rem; }
-    .form-input::placeholder { color: #7f7f7f; }
+    .form-input { background: #ffffff; border: 1px solid var(--border-subtle); color: #000; border-radius: 0.5rem; padding: 0.75rem 1rem; }
+    .form-input::placeholder { color: #9ca3af; }
     .form-input:focus { outline: none; border-color: var(--gold-primary); box-shadow: 0 0 0 3px rgba(255,215,0,.18); }
 
-    nav.nav-elegant { background: rgba(0,0,0,.95); border-bottom: 1px solid var(--border-subtle); }
-    .nav-link { color: #e5e7eb; transition: color .2s ease; }
+    nav.nav-elegant { background: rgba(255,255,255,.95); border-bottom: 1px solid var(--border-subtle); }
+    .nav-link { color: #374151; transition: color .2s ease; }
     .nav-link:hover { color: var(--gold-primary); }
 
-    .sub-nav-btn { color: #e5e7eb; border-bottom: 2px solid transparent; padding-bottom: 0.25rem; }
+    .sub-nav-btn { color: #374151; border-bottom: 2px solid transparent; padding-bottom: 0.25rem; }
     .sub-nav-btn.active { color: var(--gold-primary); border-color: var(--gold-primary); }
 
     .cart-count { position: absolute; top: -0.35rem; right: -0.35rem; background: var(--gold-primary); color: #000; font-weight: 700; font-size: 0.75rem; border-radius: 9999px; padding: 0 0.35rem; min-width: 1.25rem; text-align: center; }
@@ -101,12 +101,12 @@
     .step-icon { font-size: 1.5rem; }
     .arrow-down::after { content: ""; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); border-width: 12px 8px 0 8px; border-style: solid; border-color: var(--border-subtle) transparent transparent transparent; }
     .decision-branches { display: flex; justify-content: space-around; margin-top: 0.5rem; }
-    .branch { position: relative; padding: 0.5rem 1rem; background: #0d0d0d; border: 1px solid var(--border-subtle); border-radius: 9999px; }
+    .branch { position: relative; padding: 0.5rem 1rem; background: #f3f4f6; border: 1px solid var(--border-subtle); border-radius: 9999px; }
     .branch .arrow-right::after { content: ""; position: absolute; right: -12px; top: 50%; transform: translateY(-50%); border-width: 8px 0 8px 12px; border-style: solid; border-color: transparent transparent transparent var(--border-subtle); }
     .branch .arrow-left::after { content: ""; position: absolute; left: -12px; top: 50%; transform: translateY(-50%); border-width: 8px 12px 8px 0; border-style: solid; border-color: transparent var(--border-subtle) transparent transparent; }
 
     /* Toast */
-    .toast { position: fixed; bottom: 1rem; right: 1rem; background: #0d0d0d; color: #fff; border: 1px solid var(--border-subtle); padding: 0.75rem 1rem; border-radius: 0.5rem; z-index: 60; opacity: 0; transform: translateY(10px); transition: all .25s ease; }
+    .toast { position: fixed; bottom: 1rem; right: 1rem; background: #ffffff; color: #000; border: 1px solid var(--border-subtle); padding: 0.75rem 1rem; border-radius: 0.5rem; z-index: 60; opacity: 0; transform: translateY(10px); transition: all .25s ease; }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { border-color: #16a34a; }
     .toast.warning { border-color: #d97706; }
