@@ -60,6 +60,7 @@
           <button id="test-supabase" class="btn-secondary">Test Supabase</button>
           <button id="sync-orders" class="btn-secondary">Sync Orders</button>
           <button id="debug-auth" class="btn-secondary">Debug Auth</button>
+          <button id="check-schema" class="btn-secondary">Check Schema</button>
           <button id="reset-form" class="btn-secondary">Clear Form</button>
         </div>
       </div>
@@ -558,6 +559,84 @@
       }
     });
 
+    // Check database schema
+    document.getElementById('check-schema').addEventListener('click', async () => {
+      if (!spConfigured) {
+        alert('Supabase not configured');
+        return;
+      }
+      
+      try {
+        console.log('Checking database schema...');
+        
+        let schemaInfo = 'Database Schema Check:\n\n';
+        
+        // Check orders table structure
+        try {
+          const { data: ordersData, error: ordersError } = await sp
+            .from('orders')
+            .select('*')
+            .limit(1);
+          
+          if (ordersError) {
+            schemaInfo += `Orders Table Error: ${ordersError.message}\n`;
+          } else if (ordersData && ordersData.length > 0) {
+            const orderColumns = Object.keys(ordersData[0]);
+            schemaInfo += `Orders Table Columns:\n${orderColumns.join(', ')}\n\n`;
+          } else {
+            schemaInfo += `Orders Table: Empty (no sample data)\n\n`;
+          }
+        } catch (error) {
+          schemaInfo += `Orders Table Error: ${error.message}\n\n`;
+        }
+        
+        // Check order_items table structure
+        try {
+          const { data: itemsData, error: itemsError } = await sp
+            .from('order_items')
+            .select('*')
+            .limit(1);
+          
+          if (itemsError) {
+            schemaInfo += `Order Items Table Error: ${itemsError.message}\n`;
+          } else if (itemsData && itemsData.length > 0) {
+            const itemColumns = Object.keys(itemsData[0]);
+            schemaInfo += `Order Items Table Columns:\n${itemColumns.join(', ')}\n\n`;
+          } else {
+            schemaInfo += `Order Items Table: Empty (no sample data)\n\n`;
+          }
+        } catch (error) {
+          schemaInfo += `Order Items Table Error: ${error.message}\n\n`;
+        }
+        
+        // Check products table structure
+        try {
+          const { data: productsData, error: productsError } = await sp
+            .from('products')
+            .select('*')
+            .limit(1);
+          
+          if (productsError) {
+            schemaInfo += `Products Table Error: ${productsError.message}\n`;
+          } else if (productsData && productsData.length > 0) {
+            const productColumns = Object.keys(productsData[0]);
+            schemaInfo += `Products Table Columns:\n${productColumns.join(', ')}\n\n`;
+          } else {
+            schemaInfo += `Products Table: Empty (no sample data)\n\n`;
+          }
+        } catch (error) {
+          schemaInfo += `Products Table Error: ${error.message}\n\n`;
+        }
+        
+        console.log('Schema info:', schemaInfo);
+        alert(schemaInfo);
+        
+      } catch (error) {
+        console.error('Schema check error:', error);
+        alert('Schema check failed: ' + error.message);
+      }
+    });
+
     let isSubmitting = false; // Flag to prevent double submission
     
     document.getElementById('product-form').addEventListener('submit', async (e) => {
@@ -853,9 +932,8 @@
           throw new Error('Authentication failed. Please login again.');
         }
         
+        // Only update status - avoid columns that might not exist in schema
         const updateData = { status };
-        if (dispatchedAt) updateData.dispatched_at = dispatchedAt;
-        if (completedAt) updateData.completed_at = completedAt;
         
         console.log('Update data:', updateData);
         
