@@ -61,6 +61,7 @@
           <button id="sync-orders" class="btn-secondary">Sync Orders</button>
           <button id="debug-auth" class="btn-secondary">Debug Auth</button>
           <button id="check-schema" class="btn-secondary">Check Schema</button>
+          <button id="test-network" class="btn-secondary">Test Network</button>
           <button id="reset-form" class="btn-secondary">Clear Form</button>
         </div>
       </div>
@@ -634,6 +635,82 @@
       } catch (error) {
         console.error('Schema check error:', error);
         alert('Schema check failed: ' + error.message);
+      }
+    });
+
+    // Test network connectivity
+    document.getElementById('test-network').addEventListener('click', async () => {
+      try {
+        console.log('Testing network connectivity...');
+        
+        let networkInfo = 'Network Connectivity Test:\n\n';
+        
+        // Test basic internet connectivity
+        try {
+          const response = await fetch('https://httpbin.org/get', { 
+            method: 'GET',
+            mode: 'cors'
+          });
+          if (response.ok) {
+            networkInfo += '✅ Basic Internet: Connected\n';
+          } else {
+            networkInfo += `❌ Basic Internet: Failed (${response.status})\n`;
+          }
+        } catch (error) {
+          networkInfo += `❌ Basic Internet: Failed (${error.message})\n`;
+        }
+        
+        // Test Supabase API connectivity
+        if (spConfigured) {
+          try {
+            const supabaseUrl = localStorage.getItem('SUPABASE_URL');
+            const testResponse = await fetch(`${supabaseUrl}/rest/v1/`, {
+              method: 'GET',
+              headers: {
+                'apikey': localStorage.getItem('SUPABASE_ANON_KEY'),
+                'Authorization': `Bearer ${localStorage.getItem('SUPABASE_ANON_KEY')}`
+              }
+            });
+            
+            if (testResponse.ok) {
+              networkInfo += '✅ Supabase API: Connected\n';
+            } else {
+              networkInfo += `❌ Supabase API: Failed (${testResponse.status})\n`;
+            }
+          } catch (error) {
+            networkInfo += `❌ Supabase API: Failed (${error.message})\n`;
+          }
+        } else {
+          networkInfo += '⚠️ Supabase API: Not configured\n';
+        }
+        
+        // Test DNS resolution
+        try {
+          const dnsTest = await fetch('https://api.supabase.com/health', {
+            method: 'GET',
+            mode: 'cors'
+          });
+          if (dnsTest.ok) {
+            networkInfo += '✅ Supabase DNS: Resolved\n';
+          } else {
+            networkInfo += `❌ Supabase DNS: Failed (${dnsTest.status})\n`;
+          }
+        } catch (error) {
+          networkInfo += `❌ Supabase DNS: Failed (${error.message})\n`;
+        }
+        
+        // Check browser capabilities
+        networkInfo += `\nBrowser Info:\n`;
+        networkInfo += `User Agent: ${navigator.userAgent.substring(0, 50)}...\n`;
+        networkInfo += `Online: ${navigator.onLine ? 'Yes' : 'No'}\n`;
+        networkInfo += `Connection: ${navigator.connection ? navigator.connection.effectiveType : 'Unknown'}\n`;
+        
+        console.log('Network info:', networkInfo);
+        alert(networkInfo);
+        
+      } catch (error) {
+        console.error('Network test error:', error);
+        alert('Network test failed: ' + error.message);
       }
     });
 
