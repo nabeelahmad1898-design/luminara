@@ -421,22 +421,22 @@
   <!-- 5. Cart Modal / Drawer -->
   <div id="cart-modal" class="modal fixed inset-0 z-50">
     <div class="absolute inset-0 bg-black/60" data-cart-close></div>
-    <div class="absolute right-0 top-0 h-full w-full max-w-md bg-gray-900 shadow-xl p-6 overflow-y-auto">
+    <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl p-6 overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xl font-semibold">Your Cart</h3>
+        <h3 class="text-xl font-semibold text-black">Your Cart</h3>
         <button class="btn-secondary" data-cart-close>Close</button>
       </div>
       <div id="cart-items" class="space-y-4"></div>
-      <div class="border-t border-gray-700 mt-6 pt-6 space-y-3">
-        <div class="flex justify-between text-gray-300">
+      <div class="border-t border-gray-300 mt-6 pt-6 space-y-3">
+        <div class="flex justify-between text-gray-600">
           <span>Subtotal</span>
           <span id="cart-subtotal">PKR 0</span>
         </div>
-        <div class="flex justify-between text-gray-300">
+        <div class="flex justify-between text-gray-600">
           <span>Delivery</span>
           <span id="cart-delivery">PKR 0</span>
         </div>
-        <div class="flex justify-between font-bold text-lg" style="color: var(--gold-primary);">
+        <div class="flex justify-between font-bold text-lg text-black">
           <span>Total</span>
           <span id="cart-total">PKR 0</span>
         </div>
@@ -934,23 +934,23 @@
         const itemsWrap = document.getElementById('cart-items');
         itemsWrap.innerHTML = '';
         if (this.items.length === 0) {
-          itemsWrap.innerHTML = '<p class="text-gray-400">Your cart is empty.</p>';
+          itemsWrap.innerHTML = '<p class="text-gray-500">Your cart is empty.</p>';
         } else {
           this.items.forEach((item) => {
             const row = document.createElement('div');
-            row.className = 'flex gap-3 items-center bg-gray-800 p-3 rounded-lg';
+            row.className = 'flex gap-3 items-center bg-gray-100 p-3 rounded-lg border border-gray-200';
             row.innerHTML = `
               <img src="${(item.images && item.images[0]) || ''}" alt="${item.name}" class="h-16 w-16 object-cover rounded" />
               <div class="flex-1">
                 <div class="flex justify-between">
-                  <h4 class="font-semibold">${item.name}</h4>
-                  <button class="text-red-400 hover:text-red-300" data-remove="${item.id}">Remove</button>
+                  <h4 class="font-semibold text-black">${item.name}</h4>
+                  <button class="text-red-600 hover:text-red-700" data-remove="${item.id}">Remove</button>
                 </div>
-                <div class="text-sm text-gray-300">${item.brand}</div>
-                ${item.selectedSize ? `<div class="text-sm text-blue-400">Size: ${item.selectedSize}</div>` : ''}
+                <div class="text-sm text-gray-600">${item.brand}</div>
+                ${item.selectedSize ? `<div class="text-sm text-blue-600">Size: ${item.selectedSize}</div>` : ''}
                 <div class="flex items-center gap-2 mt-2">
                   <input type="number" min="1" value="${item.quantity}" class="form-input w-20" data-qty="${item.id}" />
-                  <span class="font-semibold ml-auto" style="color: var(--gold-primary);">${currencyFormat(item.price * item.quantity)}</span>
+                  <span class="font-semibold ml-auto text-black">${currencyFormat(item.price * item.quantity)}</span>
                 </div>
               </div>
             `;
