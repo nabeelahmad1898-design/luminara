@@ -169,12 +169,44 @@
     </div>
     
     <!-- Main Content -->
-    <div class="relative z-10 text-center text-white px-4 max-w-6xl mx-auto">
+    <div class="relative z-10 text-center text-white px-4 max-w-7xl mx-auto">
       <h1 class="hero-title font-playfair font-bold text-4xl sm:text-5xl lg:text-7xl mb-6 text-shadow-lg">ELEVATE YOUR STYLE</h1>
-      <p class="text-xl md:text-2xl mb-8 text-shadow-md max-w-3xl mx-auto">Luxury fashion and jewelry with bespoke stitching. Explore curated collections crafted for you.</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="#stitched" class="btn-primary text-lg px-8 py-4">Shop Stitched</a>
-        <a href="#custom-order" class="btn-secondary text-lg px-8 py-4">Custom Order</a>
+      <p class="text-xl md:text-2xl mb-12 text-shadow-md max-w-3xl mx-auto">Luxury fashion and jewelry with bespoke stitching. Explore curated collections crafted for you.</p>
+      
+      <!-- Featured Products Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <!-- Featured Product 1 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6 hover:bg-opacity-20 transition-all duration-300 cursor-pointer" onclick="scrollToSection('stitched')">
+          <div class="h-48 bg-cover bg-center rounded-lg mb-4" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop');"></div>
+          <h3 class="text-xl font-bold mb-2">Premium Stitched Suit</h3>
+          <p class="text-sm opacity-90 mb-3">Elegant tailored suit with perfect fit</p>
+          <div class="flex justify-between items-center">
+            <span class="text-yellow-400 font-bold">PKR 25,000</span>
+            <span class="text-xs bg-yellow-400 text-black px-2 py-1 rounded">Featured</span>
+          </div>
+        </div>
+        
+        <!-- Featured Product 2 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6 hover:bg-opacity-20 transition-all duration-300 cursor-pointer" onclick="scrollToSection('jewelry')">
+          <div class="h-48 bg-cover bg-center rounded-lg mb-4" style="background-image: url('https://images.unsplash.com/photo-1617038260897-3b1791fe9cac?q=80&w=400&auto=format&fit=crop');"></div>
+          <h3 class="text-xl font-bold mb-2">Luxury Jewelry Set</h3>
+          <p class="text-sm opacity-90 mb-3">Sophisticated accessories collection</p>
+          <div class="flex justify-between items-center">
+            <span class="text-yellow-400 font-bold">PKR 15,000</span>
+            <span class="text-xs bg-yellow-400 text-black px-2 py-1 rounded">Popular</span>
+          </div>
+        </div>
+        
+        <!-- Featured Product 3 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-6 hover:bg-opacity-20 transition-all duration-300 cursor-pointer" onclick="scrollToSection('custom-order')">
+          <div class="h-48 bg-cover bg-center rounded-lg mb-4" style="background-image: url('https://images.unsplash.com/photo-1520971347561-7e0b3b1c8f4e?q=80&w=400&auto=format&fit=crop');"></div>
+          <h3 class="text-xl font-bold mb-2">Custom Design</h3>
+          <p class="text-sm opacity-90 mb-3">Bespoke creation tailored to you</p>
+          <div class="flex justify-between items-center">
+            <span class="text-yellow-400 font-bold">Starting PKR 35,000</span>
+            <span class="text-xs bg-yellow-400 text-black px-2 py-1 rounded">Custom</span>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -1446,6 +1478,15 @@
         if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       });
     });
+
+    // Global scroll function for product cards
+    window.scrollToSection = function(sectionId) {
+      const targetSection = document.getElementById(sectionId);
+      if (targetSection) {
+        targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateCarouselIndicator(sectionId);
+      }
+    };
 
     // Hero section navigation functionality
     document.addEventListener('DOMContentLoaded', () => {
