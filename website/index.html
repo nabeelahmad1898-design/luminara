@@ -91,6 +91,10 @@
 
     .cart-count { position: absolute; top: -0.35rem; right: -0.35rem; background: var(--gold-primary); color: #000; font-weight: 700; font-size: 0.75rem; border-radius: 9999px; padding: 0 0.35rem; min-width: 1.25rem; text-align: center; }
 
+    /* Text shadows for hero section */
+    .text-shadow-md { text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+    .text-shadow-lg { text-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); }
+
     /* Modal base */
     .modal { display: none; }
     .modal.active { display: block; }
@@ -123,11 +127,11 @@
 
         <!-- Navigation Links -->
         <ul class="hidden md:flex space-x-8">
-          <li><a href="#stitched" class="nav-link">Stitched</a></li>
-          <li><a href="#pre-custom" class="nav-link">Pre-Custom</a></li>
-          <li><a href="#custom-order" class="nav-link">You Choose, We Stitch</a></li>
-          <li><a href="#jewelry" class="nav-link">Jewelry</a></li>
-          <li><a href="#infographic" class="nav-link">Our Story</a></li>
+          <li><a href="#stitched" class="nav-link">STITCHED</a></li>
+          <li><a href="#pre-custom" class="nav-link">PRE-CUSTOM</a></li>
+          <li><a href="#custom-order" class="nav-link">YOU CHOOSE, WE STITCH</a></li>
+          <li><a href="#jewelry" class="nav-link">JEWELRY</a></li>
+          <li><a href="#infographic" class="nav-link">OUR STORY</a></li>
         </ul>
 
         <!-- Actions -->
@@ -153,19 +157,120 @@
   <!-- Spacing for fixed header -->
   <div class="h-20"></div>
 
-  <!-- Hero (optional minimal) -->
-  <section class="section-padding container mx-auto px-4">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-      <div>
-        <h1 class="hero-title font-playfair font-bold text-3xl sm:text-4xl lg:text-6xl mb-4">Elevate Your Style</h1>
-        <p class="text-gray-300 text-base md:text-lg mb-6">Luxury fashion and jewelry with bespoke stitching. Explore curated stitched, pre-custom, and custom designs crafted for you.</p>
-        <div class="flex gap-4">
-          <a href="#stitched" class="btn-primary">Shop Stitched</a>
-          <a href="#custom-order" class="btn-secondary">Custom Order</a>
-        </div>
+  <!-- Hero Section - Promotional Banner Style -->
+  <section class="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <!-- Background Image -->
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('https://images.unsplash.com/photo-1520975693410-001d7aaa9a1b?q=80&w=1200&auto=format&fit=crop');">
+      <div class="absolute inset-0 bg-black bg-opacity-40"></div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="relative z-10 text-center text-white px-4 max-w-6xl mx-auto">
+      <h1 class="hero-title font-playfair font-bold text-4xl sm:text-5xl lg:text-7xl mb-6 text-shadow-lg">ELEVATE YOUR STYLE</h1>
+      <p class="text-xl md:text-2xl mb-8 text-shadow-md max-w-3xl mx-auto">Luxury fashion and jewelry with bespoke stitching. Explore curated collections crafted for you.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="#stitched" class="btn-primary text-lg px-8 py-4">Shop Stitched</a>
+        <a href="#custom-order" class="btn-secondary text-lg px-8 py-4">Custom Order</a>
       </div>
-              <div class="rounded-xl overflow-hidden" style="border: 1px solid rgba(212,175,55,0.3);">
-        <img src="https://images.unsplash.com/photo-1520975693410-001d7aaa9a1b?q=80&w=1200&auto=format&fit=crop" alt="Luxury fashion" class="w-full h-full object-cover" />
+    </div>
+    
+    <!-- Category Navigation Arrows -->
+    <div class="absolute left-8 top-1/2 transform -translate-y-1/2 z-20">
+      <div class="flex items-center space-x-2 text-white">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        <span class="text-lg font-semibold">STITCHED</span>
+      </div>
+    </div>
+    
+    <div class="absolute right-8 top-1/2 transform -translate-y-1/2 z-20">
+      <div class="flex items-center space-x-2 text-white">
+        <span class="text-lg font-semibold">JEWELRY</span>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </div>
+    </div>
+    
+    <!-- Carousel Indicators -->
+    <div class="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 flex flex-col space-y-2">
+      <div class="w-3 h-3 bg-white rounded-full"></div>
+      <div class="w-3 h-3 border-2 border-white rounded-full"></div>
+      <div class="w-3 h-3 border-2 border-white rounded-full"></div>
+      <div class="w-3 h-3 border-2 border-white rounded-full"></div>
+    </div>
+  </section>
+
+  <!-- Category Showcase Section -->
+  <section class="py-20 bg-gray-900">
+    <div class="container mx-auto px-4">
+      <h2 class="section-title text-2xl sm:text-3xl lg:text-4xl font-bold mb-12 text-center">Our Collections</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <!-- Stitched Category -->
+        <div class="category-card bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-transform duration-300">
+          <div class="h-48 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=1200&auto=format&fit=crop');">
+            <div class="h-full bg-black bg-opacity-30 flex items-end">
+              <div class="p-6 text-white">
+                <h3 class="text-2xl font-bold mb-2">STITCHED</h3>
+                <p class="text-sm opacity-90">Ready-to-wear luxury suits</p>
+              </div>
+            </div>
+          </div>
+          <div class="p-6">
+            <p class="text-gray-300 mb-4">Premium tailored suits and ensembles crafted to perfection.</p>
+            <a href="#stitched" class="btn-primary w-full text-center">Explore</a>
+          </div>
+        </div>
+
+        <!-- Pre-Custom Category -->
+        <div class="category-card bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-transform duration-300">
+          <div class="h-48 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1503341455253-b2e723bb3dbb?q=80&w=1200&auto=format&fit=crop');">
+            <div class="h-full bg-black bg-opacity-30 flex items-end">
+              <div class="p-6 text-white">
+                <h3 class="text-2xl font-bold mb-2">PRE-CUSTOM</h3>
+                <p class="text-sm opacity-90">Base designs ready for customization</p>
+              </div>
+            </div>
+          </div>
+          <div class="p-6">
+            <p class="text-gray-300 mb-4">Foundation pieces designed for your personal touch and modifications.</p>
+            <a href="#pre-custom" class="btn-primary w-full text-center">Explore</a>
+          </div>
+        </div>
+
+        <!-- Custom Order Category -->
+        <div class="category-card bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-transform duration-300">
+          <div class="h-48 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1520971347561-7e0b3b1c8f4e?q=80&w=1200&auto=format&fit=crop');">
+            <div class="h-full bg-black bg-opacity-30 flex items-end">
+              <div class="p-6 text-white">
+                <h3 class="text-2xl font-bold mb-2">YOU CHOOSE</h3>
+                <p class="text-sm opacity-90">We stitch your vision</p>
+              </div>
+            </div>
+          </div>
+          <div class="p-6">
+            <p class="text-gray-300 mb-4">Bespoke creations tailored to your exact specifications and preferences.</p>
+            <a href="#custom-order" class="btn-primary w-full text-center">Explore</a>
+          </div>
+        </div>
+
+        <!-- Jewelry Category -->
+        <div class="category-card bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-transform duration-300">
+          <div class="h-48 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1617038260897-3b1791fe9cac?q=80&w=1200&auto=format&fit=crop');">
+            <div class="h-full bg-black bg-opacity-30 flex items-end">
+              <div class="p-6 text-white">
+                <h3 class="text-2xl font-bold mb-2">JEWELRY</h3>
+                <p class="text-sm opacity-90">Elegant accessories</p>
+              </div>
+            </div>
+          </div>
+          <div class="p-6">
+            <p class="text-gray-300 mb-4">Sophisticated jewelry pieces to complement your style and elevate your look.</p>
+            <a href="#jewelry" class="btn-primary w-full text-center">Explore</a>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -178,7 +283,7 @@
       <!-- Sub-navigation -->
       <div class="flex justify-center space-x-8 mb-12">
         <button class="sub-nav-btn active" data-category="branded">Branded</button>
-        <button class="sub-nav-btn" data-category="copy">Copy</button>
+        <button class="sub-nav-btn" data-category="copy">Inspired Designs</button>
       </div>
 
       <!-- Controls -->
@@ -193,7 +298,7 @@
       </div>
 
       <!-- Products Grid -->
-      <div id="stitched-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+      <div id="stitched-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start"></div>
     </div>
   </section>
 
@@ -267,8 +372,8 @@
 
         <div>
           <label class="block text-sm font-medium mb-2">Reference Images</label>
-          <input type="file" name="images" multiple accept="image/*" class="form-input w-full" />
-          <p class="text-sm text-gray-400 mt-1">Upload reference images for your design</p>
+          <input type="file" name="images" multiple accept=".jpg,.jpeg,.png,.gif,.webp" class="form-input w-full" />
+          <p class="text-sm text-gray-400 mt-1">Upload reference images (JPEG, PNG, GIF, WebP) for your design</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -329,7 +434,7 @@
           <option value="newest">Newest</option>
         </select>
       </div>
-      <div id="pre-custom-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+      <div id="pre-custom-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start"></div>
     </div>
   </section>
 
@@ -346,7 +451,7 @@
           <option value="newest">Newest</option>
         </select>
       </div>
-      <div id="jewelry-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+      <div id="jewelry-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start"></div>
     </div>
   </section>
 
