@@ -59,6 +59,7 @@
         <div class="flex gap-2">
           <button id="test-supabase" class="btn-secondary">Test Supabase</button>
           <button id="sync-orders" class="btn-secondary">Sync Orders</button>
+          <button id="debug-auth" class="btn-secondary">Debug Auth</button>
           <button id="reset-form" class="btn-secondary">Clear Form</button>
         </div>
       </div>
@@ -515,6 +516,48 @@
       }
     });
 
+    // Debug authentication
+    document.getElementById('debug-auth').addEventListener('click', async () => {
+      if (!spConfigured) {
+        alert('Supabase not configured');
+        return;
+      }
+      
+      try {
+        console.log('Debugging authentication...');
+        const { data: { user }, error: authError } = await sp.auth.getUser();
+        
+        let debugInfo = `Supabase Configured: ${spConfigured}\n`;
+        debugInfo += `Client Available: ${!!sp}\n`;
+        
+        if (authError) {
+          debugInfo += `Auth Error: ${authError.message}\n`;
+        } else if (user) {
+          debugInfo += `User Authenticated: ${user.email}\n`;
+          debugInfo += `User ID: ${user.id}\n`;
+          debugInfo += `Last Sign In: ${user.last_sign_in_at}\n`;
+        } else {
+          debugInfo += `No User Authenticated\n`;
+        }
+        
+        // Test database access
+        try {
+          const { data, error } = await sp.from('orders').select('count').limit(1);
+          debugInfo += `Database Access: ${error ? 'Failed - ' + error.message : 'Success'}\n`;
+          if (data) debugInfo += `Orders Count: ${data.length}\n`;
+        } catch (dbError) {
+          debugInfo += `Database Error: ${dbError.message}\n`;
+        }
+        
+        console.log('Debug info:', debugInfo);
+        alert('Debug Information:\n\n' + debugInfo);
+        
+      } catch (error) {
+        console.error('Debug error:', error);
+        alert('Debug failed: ' + error.message);
+      }
+    });
+
     let isSubmitting = false; // Flag to prevent double submission
     
     document.getElementById('product-form').addEventListener('submit', async (e) => {
@@ -732,11 +775,11 @@
     });
 
     // Order status update
-    document.addEventListener('change', (e) => {
+    document.addEventListener('change', async (e) => {
       if (e.target.hasAttribute('data-status-update')) {
         const orderId = e.target.dataset.orderId;
         const newStatus = e.target.value;
-        updateOrderStatus(orderId, newStatus);
+        await updateOrderStatus(orderId, newStatus);
       }
     });
 
@@ -761,7 +804,7 @@
       renderOrders();
     });
 
-    function updateOrderStatus(orderId, newStatus) {
+    async function updateOrderStatus(orderId, newStatus) {
       const orders = loadOrders();
       const orderIndex = orders.findIndex(o => o.id === orderId);
       
@@ -781,10 +824,17 @@
         
         // Update Supabase if configured
         if (spConfigured) {
-          updateOrderStatusInSupabase(orderId, newStatus, order.dispatchedAt, order.completedAt);
+          try {
+            await updateOrderStatusInSupabase(orderId, newStatus, order.dispatchedAt, order.completedAt);
+            showNotification(`Order ${orderId} status updated to ${newStatus} (synced to database)`, 'success');
+          } catch (error) {
+            console.error('Failed to update order status in Supabase:', error);
+            showNotification(`Order status updated locally but failed to sync to database: ${error.message}`, 'warning');
+          }
+        } else {
+          showNotification(`Order ${orderId} status updated to ${newStatus}`, 'success');
         }
         
-        showNotification(`Order ${orderId} status updated to ${newStatus}`, 'success');
         renderStats();
         renderOrders();
       }
@@ -794,22 +844,36 @@
       if (!sp) return;
       
       try {
+        console.log('Updating order status in Supabase:', { orderId, status, dispatchedAt, completedAt });
+        
+        // Check authentication first
+        const { data: { user }, error: authError } = await sp.auth.getUser();
+        if (authError || !user) {
+          console.error('Authentication error updating order status:', authError);
+          throw new Error('Authentication failed. Please login again.');
+        }
+        
         const updateData = { status };
         if (dispatchedAt) updateData.dispatched_at = dispatchedAt;
         if (completedAt) updateData.completed_at = completedAt;
         
-        const { error } = await sp
+        console.log('Update data:', updateData);
+        
+        const { data, error } = await sp
           .from('orders')
           .update(updateData)
-          .eq('id', orderId);
+          .eq('id', orderId)
+          .select();
           
         if (error) {
           console.error('Error updating order status in Supabase:', error);
+          throw error;
         } else {
-          console.log('Order status updated in Supabase');
+          console.log('Order status updated in Supabase successfully:', data);
         }
       } catch (error) {
         console.error('Error updating order status:', error);
+        throw error;
       }
     }
 
@@ -819,30 +883,44 @@
       try {
         console.log('Clearing all orders from Supabase...');
         
+        // Check authentication first
+        const { data: { user }, error: authError } = await sp.auth.getUser();
+        if (authError || !user) {
+          console.error('Authentication error clearing orders:', authError);
+          throw new Error('Authentication failed. Please login again.');
+        }
+        
+        console.log('User authenticated:', user.email);
+        
         // First delete order items
-        const { error: itemsError } = await sp
+        const { data: itemsData, error: itemsError } = await sp
           .from('order_items')
           .delete()
-          .neq('id', 0); // Delete all records
+          .neq('id', 0)
+          .select(); // Delete all records
         
         if (itemsError) {
           console.error('Error deleting order items from Supabase:', itemsError);
           throw itemsError;
         }
         
+        console.log('Order items deleted:', itemsData?.length || 0, 'items');
+        
         // Then delete orders
-        const { error: ordersError } = await sp
+        const { data: ordersData, error: ordersError } = await sp
           .from('orders')
           .delete()
-          .neq('id', 0); // Delete all records
+          .neq('id', 0)
+          .select(); // Delete all records
         
         if (ordersError) {
           console.error('Error deleting orders from Supabase:', ordersError);
           throw ordersError;
         }
         
+        console.log('Orders deleted:', ordersData?.length || 0, 'orders');
         console.log('All orders successfully cleared from Supabase');
-        showNotification('Orders cleared from database successfully', 'success');
+        showNotification(`Orders cleared from database successfully (${ordersData?.length || 0} orders, ${itemsData?.length || 0} items)`, 'success');
         
       } catch (error) {
         console.error('Error clearing orders from Supabase:', error);
