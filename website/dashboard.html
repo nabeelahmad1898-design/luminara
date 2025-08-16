@@ -591,6 +591,25 @@
           schemaInfo += `Orders Table Error: ${error.message}\n\n`;
         }
         
+        // Check current order statuses
+        try {
+          const { data: statusData, error: statusError } = await sp
+            .from('orders')
+            .select('status')
+            .not('status', 'is', null);
+          
+          if (statusError) {
+            schemaInfo += `Status Check Error: ${statusError.message}\n`;
+          } else if (statusData && statusData.length > 0) {
+            const uniqueStatuses = [...new Set(statusData.map(item => item.status))];
+            schemaInfo += `Current Order Statuses:\n${uniqueStatuses.join(', ')}\n\n`;
+          } else {
+            schemaInfo += `No orders with status found\n\n`;
+          }
+        } catch (error) {
+          schemaInfo += `Status Check Error: ${error.message}\n\n`;
+        }
+        
         // Check order_items table structure
         try {
           const { data: itemsData, error: itemsError } = await sp
@@ -985,7 +1004,11 @@
             showNotification(`Order ${orderId} status updated to ${newStatus} (synced to database)`, 'success');
           } catch (error) {
             console.error('Failed to update order status in Supabase:', error);
-            showNotification(`Order status updated locally but failed to sync to database: ${error.message}`, 'warning');
+            let errorMessage = error.message;
+            if (error.message.includes('orders_status_check')) {
+              errorMessage = 'Status constraint error: The status value is not allowed. Please run the FIX_STATUS_CONSTRAINT.sql script in Supabase.';
+            }
+            showNotification(`Order status updated locally but failed to sync to database: ${errorMessage}`, 'warning');
           }
         } else {
           showNotification(`Order ${orderId} status updated to ${newStatus}`, 'success');
