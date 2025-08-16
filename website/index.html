@@ -42,14 +42,14 @@
 
   <style>
     :root {
-      --bg-primary: #FAF3E8;
-      --bg-secondary: #F5EDE0;
-      --accent-primary: #FFDAB9;
-      --accent-secondary: #D29B7F;
-      --text-primary: #8B4513;
-      --text-secondary: #A0522D;
-      --border-subtle: #E6D7C3;
-      --shadow-soft: rgba(210, 155, 127, 0.15);
+      --bg-primary: #FDFBF7;
+      --bg-secondary: #F8F6F2;
+      --accent-primary: #C49A9A;
+      --accent-secondary: #B2AC88;
+      --text-primary: #8B8589;
+      --text-secondary: #6B6B6B;
+      --border-subtle: #E8E6E2;
+      --shadow-soft: rgba(196, 154, 154, 0.15);
     }
 
     html, body { height: 100%; }
@@ -87,7 +87,7 @@
     .form-input::placeholder { color: var(--text-secondary); }
     .form-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--shadow-soft); }
 
-    nav.nav-elegant { background: rgba(250, 243, 232, 0.95); border-bottom: 1px solid var(--border-subtle); }
+    nav.nav-elegant { background: rgba(253, 251, 247, 0.95); border-bottom: 1px solid var(--border-subtle); }
     .nav-link { color: var(--text-primary); transition: color .2s ease; }
     .nav-link:hover { color: var(--accent-secondary); }
 
@@ -1433,10 +1433,10 @@
       const analyticsModuleCode = 'export class BusinessAnalytics {\n'
         + '  constructor() { this.initializeCharts(); }\n'
         + '  initializeCharts() { this.createRevenueChart(); this.createProductCategoryChart(); this.createCustomerSatisfactionChart(); this.createGrowthTrendChart(); }\n'
-        + '  createRevenueChart() { const ctx = document.getElementById("revenueChart").getContext("2d"); new Chart(ctx, { type: "doughnut", data: { labels: ["Stitched", "Pre-Custom", "Custom Orders", "Jewelry"], datasets: [{ data: [45, 25, 20, 10], backgroundColor: ["#FFDAB9", "#D29B7F", "#E6D7C3", "#F5EDE0"], borderColor: "#8B4513", borderWidth: 3 }] }, options: { responsive: true, plugins: { legend: { labels: { color: "#8B4513", font: { family: "Lato", size: 14 } } }, tooltip: { callbacks: { title: function() { return "Revenue Breakdown"; }, label: function(c) { return c.label + ": " + c.parsed + "%"; } } } } } }); }\n'
-        + '  createProductCategoryChart() { const ctx = document.getElementById("categoryChart").getContext("2d"); new Chart(ctx, { type: "bar", data: { labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], datasets: [{ label: "Stitched", data: [120,135,145,160,155,170], backgroundColor: "#FFDAB9", borderRadius: 5 }, { label: "Custom Orders", data: [45,50,48,65,70,75], backgroundColor: "#D29B7F", borderRadius: 5 }, { label: "Jewelry", data: [30,35,40,38,42,45], backgroundColor: "#E6D7C3", borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#8B4513", font: { family: "Lato" } }, grid: { color: "#E6D7C3" } }, x: { ticks: { color: "#8B4513", font: { family: "Lato" } }, grid: { color: "#E6D7C3" } } }, plugins: { legend: { labels: { color: "#8B4513", font: { family: "Lato" } } } } } }); }\n'
-        + '  createCustomerSatisfactionChart() { const ctx = document.getElementById("satisfactionChart").getContext("2d"); new Chart(ctx, { type: "radar", data: { labels: ["Quality", "Delivery Time", "Customer Service", "Value for Money", "Design Innovation"], datasets: [{ label: "Customer Satisfaction", data: [9.2, 8.5, 9.0, 8.8, 9.1], borderColor: "#D29B7F", backgroundColor: "rgba(210, 155, 127, 0.1)", pointBackgroundColor: "#D29B7F", pointBorderColor: "#D29B7F", borderWidth: 2, pointRadius: 5 }] }, options: { responsive: true, scales: { r: { beginAtZero: true, max: 10, ticks: { color: "#8B4513", backdropColor: "transparent", font: { family: "Lato" } }, grid: { color: "#E6D7C3" }, angleLines: { color: "#E6D7C3" } } }, plugins: { legend: { labels: { color: "#8B4513", font: { family: "Lato" } } } } } }); }\n'
-        + '  createGrowthTrendChart() { const ctx = document.getElementById("growthChart").getContext("2d"); new Chart(ctx, { type: "line", data: { labels: ["Q1 2023","Q2 2023","Q3 2023","Q4 2023","Q1 2024","Q2 2024"], datasets: [{ label: "Revenue Growth (PKR)", data: [250000,280000,320000,380000,420000,450000], borderColor: "#D29B7F", backgroundColor: "rgba(210, 155, 127, 0.1)", tension: 0.4, borderWidth: 3, pointRadius: 6, pointBackgroundColor: "#D29B7F", fill: true }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#8B4513", callback: function(v) { return "PKR " + Number(v).toLocaleString(); }, font: { family: "Lato" } }, grid: { color: "#E6D7C3" } }, x: { ticks: { color: "#8B4513", font: { family: "Lato" } }, grid: { color: "#E6D7C3" } } }, plugins: { legend: { labels: { color: "#8B4513", font: { family: "Lato" } } }, tooltip: { callbacks: { title: function() { return "Growth Analysis"; }, label: function(c) { return "Revenue: PKR " + Number(c.parsed.y).toLocaleString(); } } } } } }); }\n'
+        + '  createRevenueChart() { const ctx = document.getElementById("revenueChart").getContext("2d"); new Chart(ctx, { type: "doughnut", data: { labels: ["Stitched", "Pre-Custom", "Custom Orders", "Jewelry"], datasets: [{ data: [45, 25, 20, 10], backgroundColor: ["#C49A9A", "#B2AC88", "#E8E6E2", "#F8F6F2"], borderColor: "#8B8589", borderWidth: 3 }] }, options: { responsive: true, plugins: { legend: { labels: { color: "#8B8589", font: { family: "Lato", size: 14 } } }, tooltip: { callbacks: { title: function() { return "Revenue Breakdown"; }, label: function(c) { return c.label + ": " + c.parsed + "%"; } } } } } }); }\n'
+        + '  createProductCategoryChart() { const ctx = document.getElementById("categoryChart").getContext("2d"); new Chart(ctx, { type: "bar", data: { labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], datasets: [{ label: "Stitched", data: [120,135,145,160,155,170], backgroundColor: "#C49A9A", borderRadius: 5 }, { label: "Custom Orders", data: [45,50,48,65,70,75], backgroundColor: "#B2AC88", borderRadius: 5 }, { label: "Jewelry", data: [30,35,40,38,42,45], backgroundColor: "#E8E6E2", borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#8B8589", font: { family: "Lato" } }, grid: { color: "#E8E6E2" } }, x: { ticks: { color: "#8B8589", font: { family: "Lato" } }, grid: { color: "#E8E6E2" } } }, plugins: { legend: { labels: { color: "#8B8589", font: { family: "Lato" } } } } } }); }\n'
+        + '  createCustomerSatisfactionChart() { const ctx = document.getElementById("satisfactionChart").getContext("2d"); new Chart(ctx, { type: "radar", data: { labels: ["Quality", "Delivery Time", "Customer Service", "Value for Money", "Design Innovation"], datasets: [{ label: "Customer Satisfaction", data: [9.2, 8.5, 9.0, 8.8, 9.1], borderColor: "#B2AC88", backgroundColor: "rgba(178, 172, 136, 0.1)", pointBackgroundColor: "#B2AC88", pointBorderColor: "#B2AC88", borderWidth: 2, pointRadius: 5 }] }, options: { responsive: true, scales: { r: { beginAtZero: true, max: 10, ticks: { color: "#8B8589", backdropColor: "transparent", font: { family: "Lato" } }, grid: { color: "#E8E6E2" }, angleLines: { color: "#E8E6E2" } } }, plugins: { legend: { labels: { color: "#8B8589", font: { family: "Lato" } } } } } }); }\n'
+        + '  createGrowthTrendChart() { const ctx = document.getElementById("growthChart").getContext("2d"); new Chart(ctx, { type: "line", data: { labels: ["Q1 2023","Q2 2023","Q3 2023","Q4 2023","Q1 2024","Q2 2024"], datasets: [{ label: "Revenue Growth (PKR)", data: [250000,280000,320000,380000,420000,450000], borderColor: "#B2AC88", backgroundColor: "rgba(178, 172, 136, 0.1)", tension: 0.4, borderWidth: 3, pointRadius: 6, pointBackgroundColor: "#B2AC88", fill: true }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#8B8589", callback: function(v) { return "PKR " + Number(v).toLocaleString(); }, font: { family: "Lato" } }, grid: { color: "#E8E6E2" } }, x: { ticks: { color: "#8B8589", font: { family: "Lato" } }, grid: { color: "#E8E6E2" } } }, plugins: { legend: { labels: { color: "#8B8589", font: { family: "Lato" } } }, tooltip: { callbacks: { title: function() { return "Growth Analysis"; }, label: function(c) { return "Revenue: PKR " + Number(c.parsed.y).toLocaleString(); } } } } } }); }\n'
         + '}';
       const blob = new Blob([analyticsModuleCode], { type: 'text/javascript' });
       const url = URL.createObjectURL(blob);
