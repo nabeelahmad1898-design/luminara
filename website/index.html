@@ -42,13 +42,14 @@
 
   <style>
     :root {
-      --bg-primary: #FFFFFF;
-      --bg-secondary: #f8f9fa;
-      --gold-primary: #D4AF37;
-      --gold-secondary: #B8860B;
-      --text-primary: #2C2C2C;
-      --text-secondary: #6b7280;
-      --border-subtle: #e5e7eb;
+      --bg-primary: #FAF3E8;
+      --bg-secondary: #F5EDE0;
+      --accent-primary: #FFDAB9;
+      --accent-secondary: #D29B7F;
+      --text-primary: #8B4513;
+      --text-secondary: #A0522D;
+      --border-subtle: #E6D7C3;
+      --shadow-soft: rgba(210, 155, 127, 0.15);
     }
 
     html, body { height: 100%; }
@@ -73,27 +74,27 @@
       padding: 1.5rem;
       transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
     }
-    .product-card:hover { transform: translateY(-2px); border-color: var(--gold-primary); box-shadow: 0 12px 24px rgba(0,0,0,.6); }
+    .product-card:hover { transform: translateY(-2px); border-color: var(--accent-primary); box-shadow: 0 12px 24px var(--shadow-soft); }
 
-    .btn-primary { background: var(--gold-primary); color: #000; font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background .2s ease, transform .1s ease; }
-    .btn-primary:hover { background: var(--gold-secondary); }
+    .btn-primary { background: var(--accent-primary); color: var(--text-primary); font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: background .2s ease, transform .1s ease; }
+    .btn-primary:hover { background: var(--accent-secondary); color: var(--bg-primary); }
     .btn-primary:active { transform: translateY(1px); }
 
-    .btn-secondary { border: 1px solid var(--gold-primary); color: var(--gold-primary); font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all .2s ease; }
-    .btn-secondary:hover { background: var(--gold-primary); color: #000; }
+    .btn-secondary { border: 1px solid var(--accent-primary); color: var(--accent-primary); font-weight: 700; padding: 0.75rem 1.5rem; border-radius: 0.5rem; transition: all .2s ease; }
+    .btn-secondary:hover { background: var(--accent-primary); color: var(--text-primary); }
 
-    .form-input { background: #ffffff; border: 1px solid var(--border-subtle); color: #000; border-radius: 0.5rem; padding: 0.75rem 1rem; }
-    .form-input::placeholder { color: #9ca3af; }
-    .form-input:focus { outline: none; border-color: var(--gold-primary); box-shadow: 0 0 0 3px rgba(212,175,55,.18); }
+    .form-input { background: var(--bg-primary); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 0.5rem; padding: 0.75rem 1rem; }
+    .form-input::placeholder { color: var(--text-secondary); }
+    .form-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--shadow-soft); }
 
-    nav.nav-elegant { background: rgba(255,255,255,.95); border-bottom: 1px solid var(--border-subtle); }
-    .nav-link { color: #374151; transition: color .2s ease; }
-    .nav-link:hover { color: var(--gold-primary); }
+    nav.nav-elegant { background: rgba(250, 243, 232, 0.95); border-bottom: 1px solid var(--border-subtle); }
+    .nav-link { color: var(--text-primary); transition: color .2s ease; }
+    .nav-link:hover { color: var(--accent-secondary); }
 
-    .sub-nav-btn { color: #374151; border-bottom: 2px solid transparent; padding-bottom: 0.25rem; }
-    .sub-nav-btn.active { color: var(--gold-primary); border-color: var(--gold-primary); }
+    .sub-nav-btn { color: var(--text-primary); border-bottom: 2px solid transparent; padding-bottom: 0.25rem; }
+    .sub-nav-btn.active { color: var(--accent-secondary); border-color: var(--accent-secondary); }
 
-    .cart-count { position: absolute; top: -0.35rem; right: -0.35rem; background: var(--gold-primary); color: #000; font-weight: 700; font-size: 0.75rem; border-radius: 9999px; padding: 0 0.35rem; min-width: 1.25rem; text-align: center; }
+    .cart-count { position: absolute; top: -0.35rem; right: -0.35rem; background: var(--accent-primary); color: var(--text-primary); font-weight: 700; font-size: 0.75rem; border-radius: 9999px; padding: 0 0.35rem; min-width: 1.25rem; text-align: center; }
 
     /* Text shadows for hero section */
     .text-shadow-md { text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
@@ -1432,10 +1433,10 @@
       const analyticsModuleCode = 'export class BusinessAnalytics {\n'
         + '  constructor() { this.initializeCharts(); }\n'
         + '  initializeCharts() { this.createRevenueChart(); this.createProductCategoryChart(); this.createCustomerSatisfactionChart(); this.createGrowthTrendChart(); }\n'
-        + '  createRevenueChart() { const ctx = document.getElementById("revenueChart").getContext("2d"); new Chart(ctx, { type: "doughnut", data: { labels: ["Stitched", "Pre-Custom", "Custom Orders", "Jewelry"], datasets: [{ data: [45, 25, 20, 10], backgroundColor: ["#D4AF37", "#B8860B", "#CD853F", "#D2691E"], borderColor: "#1a1a1a", borderWidth: 3 }] }, options: { responsive: true, plugins: { legend: { labels: { color: "#FFFFFF", font: { family: "Lato", size: 14 } } }, tooltip: { callbacks: { title: function() { return "Revenue Breakdown"; }, label: function(c) { return c.label + ": " + c.parsed + "%"; } } } } } }); }\n'
-        + '  createProductCategoryChart() { const ctx = document.getElementById("categoryChart").getContext("2d"); new Chart(ctx, { type: "bar", data: { labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], datasets: [{ label: "Stitched", data: [120,135,145,160,155,170], backgroundColor: "#D4AF37", borderRadius: 5 }, { label: "Custom Orders", data: [45,50,48,65,70,75], backgroundColor: "#B8860B", borderRadius: 5 }, { label: "Jewelry", data: [30,35,40,38,42,45], backgroundColor: "#CD853F", borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#FFFFFF", font: { family: "Lato" } }, grid: { color: "#2c2c2c" } }, x: { ticks: { color: "#FFFFFF", font: { family: "Lato" } }, grid: { color: "#2c2c2c" } } }, plugins: { legend: { labels: { color: "#FFFFFF", font: { family: "Lato" } } } } } }); }\n'
-        + '  createCustomerSatisfactionChart() { const ctx = document.getElementById("satisfactionChart").getContext("2d"); new Chart(ctx, { type: "radar", data: { labels: ["Quality", "Delivery Time", "Customer Service", "Value for Money", "Design Innovation"], datasets: [{ label: "Customer Satisfaction", data: [9.2, 8.5, 9.0, 8.8, 9.1], borderColor: "#D4AF37", backgroundColor: "rgba(212, 175, 55, 0.1)", pointBackgroundColor: "#D4AF37", pointBorderColor: "#D4AF37", borderWidth: 2, pointRadius: 5 }] }, options: { responsive: true, scales: { r: { beginAtZero: true, max: 10, ticks: { color: "#FFFFFF", backdropColor: "transparent", font: { family: "Lato" } }, grid: { color: "#2c2c2c" }, angleLines: { color: "#2c2c2c" } } }, plugins: { legend: { labels: { color: "#FFFFFF", font: { family: "Lato" } } } } } }); }\n'
-        + '  createGrowthTrendChart() { const ctx = document.getElementById("growthChart").getContext("2d"); new Chart(ctx, { type: "line", data: { labels: ["Q1 2023","Q2 2023","Q3 2023","Q4 2023","Q1 2024","Q2 2024"], datasets: [{ label: "Revenue Growth (PKR)", data: [250000,280000,320000,380000,420000,450000], borderColor: "#D4AF37", backgroundColor: "rgba(212, 175, 55, 0.1)", tension: 0.4, borderWidth: 3, pointRadius: 6, pointBackgroundColor: "#D4AF37", fill: true }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#FFFFFF", callback: function(v) { return "PKR " + Number(v).toLocaleString(); }, font: { family: "Lato" } }, grid: { color: "#2c2c2c" } }, x: { ticks: { color: "#FFFFFF", font: { family: "Lato" } }, grid: { color: "#2c2c2c" } } }, plugins: { legend: { labels: { color: "#FFFFFF", font: { family: "Lato" } } }, tooltip: { callbacks: { title: function() { return "Growth Analysis"; }, label: function(c) { return "Revenue: PKR " + Number(c.parsed.y).toLocaleString(); } } } } } }); }\n'
+        + '  createRevenueChart() { const ctx = document.getElementById("revenueChart").getContext("2d"); new Chart(ctx, { type: "doughnut", data: { labels: ["Stitched", "Pre-Custom", "Custom Orders", "Jewelry"], datasets: [{ data: [45, 25, 20, 10], backgroundColor: ["#FFDAB9", "#D29B7F", "#E6D7C3", "#F5EDE0"], borderColor: "#8B4513", borderWidth: 3 }] }, options: { responsive: true, plugins: { legend: { labels: { color: "#8B4513", font: { family: "Lato", size: 14 } } }, tooltip: { callbacks: { title: function() { return "Revenue Breakdown"; }, label: function(c) { return c.label + ": " + c.parsed + "%"; } } } } } }); }\n'
+        + '  createProductCategoryChart() { const ctx = document.getElementById("categoryChart").getContext("2d"); new Chart(ctx, { type: "bar", data: { labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"], datasets: [{ label: "Stitched", data: [120,135,145,160,155,170], backgroundColor: "#FFDAB9", borderRadius: 5 }, { label: "Custom Orders", data: [45,50,48,65,70,75], backgroundColor: "#D29B7F", borderRadius: 5 }, { label: "Jewelry", data: [30,35,40,38,42,45], backgroundColor: "#E6D7C3", borderRadius: 5 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#8B4513", font: { family: "Lato" } }, grid: { color: "#E6D7C3" } }, x: { ticks: { color: "#8B4513", font: { family: "Lato" } }, grid: { color: "#E6D7C3" } } }, plugins: { legend: { labels: { color: "#8B4513", font: { family: "Lato" } } } } } }); }\n'
+        + '  createCustomerSatisfactionChart() { const ctx = document.getElementById("satisfactionChart").getContext("2d"); new Chart(ctx, { type: "radar", data: { labels: ["Quality", "Delivery Time", "Customer Service", "Value for Money", "Design Innovation"], datasets: [{ label: "Customer Satisfaction", data: [9.2, 8.5, 9.0, 8.8, 9.1], borderColor: "#D29B7F", backgroundColor: "rgba(210, 155, 127, 0.1)", pointBackgroundColor: "#D29B7F", pointBorderColor: "#D29B7F", borderWidth: 2, pointRadius: 5 }] }, options: { responsive: true, scales: { r: { beginAtZero: true, max: 10, ticks: { color: "#8B4513", backdropColor: "transparent", font: { family: "Lato" } }, grid: { color: "#E6D7C3" }, angleLines: { color: "#E6D7C3" } } }, plugins: { legend: { labels: { color: "#8B4513", font: { family: "Lato" } } } } } }); }\n'
+        + '  createGrowthTrendChart() { const ctx = document.getElementById("growthChart").getContext("2d"); new Chart(ctx, { type: "line", data: { labels: ["Q1 2023","Q2 2023","Q3 2023","Q4 2023","Q1 2024","Q2 2024"], datasets: [{ label: "Revenue Growth (PKR)", data: [250000,280000,320000,380000,420000,450000], borderColor: "#D29B7F", backgroundColor: "rgba(210, 155, 127, 0.1)", tension: 0.4, borderWidth: 3, pointRadius: 6, pointBackgroundColor: "#D29B7F", fill: true }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: "#8B4513", callback: function(v) { return "PKR " + Number(v).toLocaleString(); }, font: { family: "Lato" } }, grid: { color: "#E6D7C3" } }, x: { ticks: { color: "#8B4513", font: { family: "Lato" } }, grid: { color: "#E6D7C3" } } }, plugins: { legend: { labels: { color: "#8B4513", font: { family: "Lato" } } }, tooltip: { callbacks: { title: function() { return "Growth Analysis"; }, label: function(c) { return "Revenue: PKR " + Number(c.parsed.y).toLocaleString(); } } } } } }); }\n'
         + '}';
       const blob = new Blob([analyticsModuleCode], { type: 'text/javascript' });
       const url = URL.createObjectURL(blob);
