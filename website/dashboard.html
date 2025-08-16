@@ -58,6 +58,7 @@
         <h2 class="text-lg font-semibold">Add / Edit Product</h2>
         <div class="flex gap-2">
           <button id="test-supabase" class="btn-secondary">Test Supabase</button>
+          <button id="sync-orders" class="btn-secondary">Sync Orders</button>
           <button id="reset-form" class="btn-secondary">Clear Form</button>
         </div>
       </div>
@@ -496,6 +497,24 @@
       }
     });
 
+    // Sync orders from Supabase
+    document.getElementById('sync-orders').addEventListener('click', async () => {
+      if (!spConfigured) {
+        alert('Supabase not configured');
+        return;
+      }
+      
+      try {
+        await syncOrdersFromSupabase();
+        renderStats();
+        renderOrders();
+        showNotification('Orders synced from database', 'success');
+      } catch (error) {
+        console.error('Error syncing orders:', error);
+        alert('Failed to sync orders: ' + error.message);
+      }
+    });
+
     let isSubmitting = false; // Flag to prevent double submission
     
     document.getElementById('product-form').addEventListener('submit', async (e) => {
@@ -722,9 +741,22 @@
     });
 
     // Clear orders button
-    document.getElementById('clear-orders').addEventListener('click', () => {
-      if (!confirm('Clear all orders from this device?')) return;
+    document.getElementById('clear-orders').addEventListener('click', async () => {
+      if (!confirm('Clear all orders from this device and database?')) return;
+      
+      // Clear from local storage
       saveOrders([]);
+      
+      // Clear from Supabase if configured
+      if (spConfigured) {
+        try {
+          await clearOrdersFromSupabase();
+        } catch (error) {
+          console.error('Error clearing orders from Supabase:', error);
+          alert('Orders cleared from device but failed to clear from database. Please try again.');
+        }
+      }
+      
       renderStats();
       renderOrders();
     });
@@ -778,6 +810,106 @@
         }
       } catch (error) {
         console.error('Error updating order status:', error);
+      }
+    }
+
+    async function clearOrdersFromSupabase() {
+      if (!sp) return;
+      
+      try {
+        console.log('Clearing all orders from Supabase...');
+        
+        // First delete order items
+        const { error: itemsError } = await sp
+          .from('order_items')
+          .delete()
+          .neq('id', 0); // Delete all records
+        
+        if (itemsError) {
+          console.error('Error deleting order items from Supabase:', itemsError);
+          throw itemsError;
+        }
+        
+        // Then delete orders
+        const { error: ordersError } = await sp
+          .from('orders')
+          .delete()
+          .neq('id', 0); // Delete all records
+        
+        if (ordersError) {
+          console.error('Error deleting orders from Supabase:', ordersError);
+          throw ordersError;
+        }
+        
+        console.log('All orders successfully cleared from Supabase');
+        showNotification('Orders cleared from database successfully', 'success');
+        
+      } catch (error) {
+        console.error('Error clearing orders from Supabase:', error);
+        throw error;
+      }
+    }
+
+    async function syncOrdersFromSupabase() {
+      if (!sp) return;
+      
+      try {
+        console.log('Syncing orders from Supabase...');
+        
+        // Load orders from Supabase
+        const { data: orders, error: ordersError } = await sp
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (ordersError) {
+          console.error('Error loading orders from Supabase:', ordersError);
+          throw ordersError;
+        }
+        
+        // Load order items from Supabase
+        const { data: orderItems, error: itemsError } = await sp
+          .from('order_items')
+          .select('*');
+        
+        if (itemsError) {
+          console.error('Error loading order items from Supabase:', itemsError);
+          throw itemsError;
+        }
+        
+        // Map Supabase data to local format
+        const mappedOrders = (orders || []).map(order => ({
+          id: order.id,
+          customerInfo: {
+            name: order.customer_name,
+            email: order.customer_email,
+            address: order.customer_address
+          },
+          paymentMethod: order.payment_method,
+          subtotal: order.subtotal,
+          deliveryFee: order.delivery_fee,
+          total: order.total,
+          status: order.status,
+          createdAt: order.created_at,
+          dispatchedAt: order.dispatched_at,
+          completedAt: order.completed_at,
+          items: (orderItems || []).filter(item => item.order_id === order.id).map(item => ({
+            id: item.product_id,
+            name: item.product_name,
+            quantity: item.quantity,
+            price: item.price,
+            category: item.category,
+            size: item.size
+          }))
+        }));
+        
+        // Save to local storage
+        saveOrders(mappedOrders);
+        console.log('Orders synced from Supabase:', mappedOrders.length, 'orders');
+        
+      } catch (error) {
+        console.error('Error syncing orders from Supabase:', error);
+        throw error;
       }
     }
 
